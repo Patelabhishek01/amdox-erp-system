@@ -28,7 +28,7 @@
 //   .put(updateExpense)
 //   .delete(deleteExpense);
 
-const Expense = require("../models/Expense");
+const Expense = require("../models/expense");
 
 // Get all expenses
 const getExpenses = async (req, res) => {
