@@ -49,6 +49,10 @@ const login = async (req, res) => {
     console.log("BODY:", req.body);
 
     const { email, password } = req.body;
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is not defined in environment variables");
+      return res.status(500).json({ message: "Server configuration error" });
+    }
 
     console.log("EMAIL:", email);
 
@@ -81,10 +85,16 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-    console.log("after token generation");
-    res.status(200).json({
+
+    return res.status(200).json({
       message: "Login successful",
-      token
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
 
   } catch (error) {
