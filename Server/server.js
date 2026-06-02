@@ -24,7 +24,6 @@ const recruitmentModule = require("./modules/recruitment");
 app.use(cors());  
 const connectDB = require("./config/db");
 
-// 🔥 pehle DB connect
 connectDB();
 
 app.use(express.json());
@@ -47,7 +46,14 @@ app.use("/api/tickets", helpdeskModule.ticketRoutes);
 app.use("/api/assets", assetModule.assetRoutes);
 app.use("/api/candidates", recruitmentModule.candidateRoutes);
 
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Amdox ERP Backend Running"
+  });
+});
 
-app.listen(5000, () => {
-  console.log("Server started on port 5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });
