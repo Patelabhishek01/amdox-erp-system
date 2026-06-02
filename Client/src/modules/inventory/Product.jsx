@@ -9,7 +9,7 @@ import PageHeader from "../../component/ui/PageHeader";
 import {
   getProducts,
   deleteProduct,
-} from "../inventory/services/poductService";
+} from "../inventory/services/productService";
 
 export default function Product() {
   const navigate = useNavigate();
