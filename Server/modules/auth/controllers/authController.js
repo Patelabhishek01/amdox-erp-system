@@ -74,13 +74,14 @@ const login = async (req, res) => {
         message: "Invalid credentials"
       });
     }
-
+    console.log("Before token generation");
+    console.log("JWT_SECRET:", process.env.JWT_SECRET);
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
-
+    console.log("after token generation");
     res.status(200).json({
       message: "Login successful",
       token

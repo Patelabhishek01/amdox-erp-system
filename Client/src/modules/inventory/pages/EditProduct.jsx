@@ -7,7 +7,7 @@ import ProductForm from "../components/ProductForm";
 import {
   getProductById,
   updateProduct,
-} from "../services/poductService";
+} from "../services/productService";
 
 const EditProduct = () => {
   const { id } = useParams();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   getProducts,
-} from "../inventory/services/poductService";
+} from "../inventory/services/productService";
 import { useNavigate } from "react-router-dom";
 
 const InventoryDashboard = () => {
