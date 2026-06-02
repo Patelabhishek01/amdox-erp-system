@@ -1,0 +1,133 @@
+ @import url("https://fonts.googleapis.com/css?family=Montserrat:400,500&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+* {
+  max-height: none !important;
+}
+html {
+  font-size: 62.5%;
+}
+
+html, body {
+  height: auto !important;;
+  overflow-y: auto !important;;
+}
+
+body {
+  background: linear-gradient(135deg, #1f4037, #99f2c8);
+  min-height: 100vh;
+  margin:0;
+  overflow-y: auto;
+}
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  width: 500px;
+  margin: 0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 0px; 
+}
+/* Heading */
+h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 2.8rem;
+  color: #333;
+}
+
+p {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.4rem;
+  color: #666;
+}
+
+/* Labels */
+label {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"] {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0 18px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  font-size: 1.4rem;
+  color: #333;
+  caret-color: #1f8a70;    
+  transition: 0.3s;
+}
+
+/* Focus effect */
+input:focus {
+  border-color: #1f8a70;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 5px rgba(31, 138, 112, 0.3);
+}
+
+/* Button */
+button {
+  background: #1f8a70;
+  color: white;
+  padding: 12px;
+  margin-top: 10px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1.6rem;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #146c5a;
+}
+
+/* Terms text */
+span {
+  color: #1f8a70;
+  font-weight: bold;
+}
+/* Mobile */
+@media screen and (max-width: 400px) {
+  .container {
+    width: 90%;
+  }
+}
+
+input::placeholder {
+  color: #090909 !important;
+  opacity: 1 !important;
+}
+
+input::-webkit-input-placeholder {
+  color: #555 !important;
+}
+
+input:-ms-input-placeholder {
+  color: #555 !important;
+}

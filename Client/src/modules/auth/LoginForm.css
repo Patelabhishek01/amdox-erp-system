@@ -1,0 +1,86 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Centering */
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1f4037, #99f2c8);
+}
+
+/* Card */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* .card {
+  background: white;
+  padding: 30px;
+  width: 350px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+} */
+
+/* Heading */
+.card h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #065743; 
+}
+
+/* Form layout */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Labels */
+label {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Inputs */
+input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+input:focus {
+  border-color: #1f8a70;
+  outline: none;
+}
+
+/* Button */
+button {
+  margin-top: 15px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #1f8a70;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background: #146c5a;
+}
