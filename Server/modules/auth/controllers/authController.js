@@ -46,24 +46,38 @@ const register = async (req, res) => {
 // ✅ LOGIN + JWT
 const login = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+
     const { email, password } = req.body;
 
-    // check user
+    console.log("EMAIL:", email);
+
     const user = await User.findOne({ email });
+
+    console.log("USER:", user);
+
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({
+        message: "User not found"
+      });
     }
 
-    // password match
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    console.log("PASSWORD MATCH:", isMatch);
+
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({
+        message: "Invalid credentials"
+      });
     }
 
-    // 🔐 TOKEN GENERATE
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      "secretkey",
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
@@ -73,8 +87,10 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("LOGIN ERROR:", error);
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 };
 
