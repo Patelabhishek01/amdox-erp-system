@@ -101,27 +101,30 @@ export const LoginForm = () => {
       // Success
       // ─────────────────────────────────────────
       if (res.ok) {
+        console.log("RESPONSE:", data);
+
+        if (!data.token) {
+          throw new Error(
+            `Token not received. Response: ${JSON.stringify(data)}`
+          );
+        }
+
         const token = data.token;
 
-        // Decode JWT
         const payload = JSON.parse(
           atob(token.split(".")[1])
         );
 
-        const role =
-          payload.role || "employee";
+        const role = payload.role || "employee";
 
-        const user =
-          data.user || payload;
+        const user = data.user || payload;
 
-        // Save auth data
         saveAuthData({
           token,
           role,
           user,
         });
 
-        // Redirect logic
         const redirectTo =
           location.state?.from?.pathname ||
           ROLE_REDIRECT[role] ||

@@ -46,62 +46,35 @@ const register = async (req, res) => {
 // ✅ LOGIN + JWT
 const login = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
-
     const { email, password } = req.body;
-    if (!process.env.JWT_SECRET) {
-      console.error("JWT_SECRET is not defined in environment variables");
-      return res.status(500).json({ message: "Server configuration error" });
-    }
 
-    console.log("EMAIL:", email);
-
+    // check user
     const user = await User.findOne({ email });
-
-    console.log("USER:", user);
-
     if (!user) {
-      return res.status(400).json({
-        message: "User not found"
-      });
+      return res.status(400).json({ message: "User not found" });
     }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    console.log("PASSWORD MATCH:", isMatch);
-
+    // password match
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({
-        message: "Invalid credentials"
-      });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
-    console.log("Before token generation");
-    console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
+    // 🔐 TOKEN GENERATE
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
+      "secretkey",
       { expiresIn: "1d" }
     );
 
-    return res.status(200).json({
+    res.status(200).json({
       message: "Login successful",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
+      token
     });
 
   } catch (error) {
-    console.error("LOGIN ERROR:", error);
-    res.status(500).json({
-      message: "Server error"
-    });
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
