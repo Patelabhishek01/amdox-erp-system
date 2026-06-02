@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ExpenseForm from "../components/ExpenseForm";
+import ExpenseForm from "../Components/ExpenseForm";
 import { createExpense } from "../services/expenseService";
 
 const AddExpense = () => {

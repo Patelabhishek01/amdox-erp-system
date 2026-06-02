@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import Sidebar from "./Sidebar";
-import TopNavbar from "./TopNavbar";
+import TopNavBar from "./TopNavBar";
 
 // ─────────────────────────────────────────────
 // Dynamic Page Titles
@@ -135,7 +135,7 @@ export default function MainLayout({
       <div className="main-content-wrapper">
 
         {/* Top Navbar */}
-        <TopNavbar
+        <TopNavBar
           title={currentTitle}
           toggleSidebar={
             toggleMobileSidebar

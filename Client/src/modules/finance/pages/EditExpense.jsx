@@ -3,7 +3,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import ExpenseForm from "../components/ExpenseForm";
+import ExpenseForm from "../Components/ExpenseForm";
 import {
   getExpenseById,
   updateExpense,
