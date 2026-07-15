@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import NotificationDropdown from "./NotificationDropdown";
 import ProfileDropdown from "./ProfileDropdown";
+import useSocketNotifications from "../../utils/useSocketNotifications";
 
 // ─── All modules with role access ─────────────────────────────────────────────
 const ALL_MODULES = [
@@ -56,8 +57,8 @@ export default function TopNavbar({ toggleSidebar, title }) {
   const notificationRef = useRef(null);
   const profileRef     = useRef(null);
 
-  // ─── Read role from localStorage ──────────────────────────────────────────
-  const role       = localStorage.getItem("role") || "employee";
+  // ─── Read role from localStorage (normalized to lowercase) ─────────────────
+  const role       = (localStorage.getItem("role") || "employee").toLowerCase();
   const roleConfig = ROLE_CONFIG[role] || { label: role, color: "#64748b" };
 
   // Build avatar URL using role label
@@ -96,6 +97,8 @@ export default function TopNavbar({ toggleSidebar, title }) {
     setSearch("");
     setShowSearchResults(false);
   };
+
+  const { unreadCount } = useSocketNotifications();
 
   return (
     <header className="top-navbar">
@@ -164,7 +167,27 @@ export default function TopNavbar({ toggleSidebar, title }) {
             }}
           >
             <Bell size={20} />
-            <span className="notification-dot"></span>
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-4px",
+                  right: "-4px",
+                  background: "#dc2626",
+                  color: "#ffffff",
+                  fontSize: "9px",
+                  fontWeight: "700",
+                  width: "16px",
+                  height: "16px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center"
+                }}
+              >
+                {unreadCount}
+              </span>
+            )}
           </button>
           {showNotifications && <NotificationDropdown />}
         </div>

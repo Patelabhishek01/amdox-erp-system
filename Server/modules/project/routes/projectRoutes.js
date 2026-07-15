@@ -9,6 +9,19 @@ const {
   deleteProject,
 } = require("../controllers/projectController");
 
+const {
+  createTask,
+  logHours,
+  getTasks,
+  getTasksByEmployee
+} = require("../controllers/taskController");
+
+// Task routes
+router.post("/tasks", createTask);
+router.patch("/tasks/:id/log-hours", logHours);
+router.get("/tasks", getTasks);
+router.get("/tasks/employee/:employeeId", getTasksByEmployee);
+
 // Create Project
 router.post("/", createProject);
 

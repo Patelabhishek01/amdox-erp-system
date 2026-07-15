@@ -3,6 +3,8 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
+import MainLayout from "../../../component/layouts/MainLayout";
+import PageHeader from "../../../component/ui/PageHeader";
 import ProductForm from "../components/ProductForm";
 import {
   getProductById,
@@ -38,6 +40,8 @@ const EditProduct = () => {
       }
     };
 
+    const token = localStorage.getItem("token");
+
     fetchProduct();
   }, [id]);
 
@@ -59,62 +63,45 @@ const EditProduct = () => {
 
   if (fetching) {
     return (
-      <div style={{ padding: "24px" }}>
-        Loading...
-      </div>
+      <MainLayout>
+        <div style={{ padding: "24px" }}>
+          Loading...
+        </div>
+      </MainLayout>
     );
   }
 
   if (!product || !product._id) {
     return (
-      <div
-        style={{
-          padding: "24px",
-          color: "red",
-        }}
-      >
-        Product not found.
-      </div>
+      <MainLayout>
+        <div
+          style={{
+            padding: "24px",
+            color: "red",
+          }}
+        >
+          Product not found.
+        </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div style={{ padding: "24px" }}>
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "bold",
-          marginBottom: "24px",
-        }}
-      >
-        Edit Product
-      </h1>
-
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() =>
-            navigate("/inventory/products")
-          }
-          style={{
-            backgroundColor: "#6b7280",
-            color: "#ffffff",
-            border: "none",
-            padding: "8px 14px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginBottom: "20px",
-          }}
-        >
-          ⬅ Back
-        </button>
-      </div>
-
-      <ProductForm
-        initialData={product}
-        onSubmit={handleUpdate}
-        loading={loading}
+    <MainLayout>
+      <PageHeader
+        title="Edit Product"
+        subtitle={`Modify catalog details for SKU: ${product.sku}`}
+        backUrl="/inventory/products"
       />
-    </div>
+
+      <div style={{ marginTop: "24px" }}>
+        <ProductForm
+          initialData={product}
+          onSubmit={handleUpdate}
+          loading={loading}
+        />
+      </div>
+    </MainLayout>
   );
 };
 

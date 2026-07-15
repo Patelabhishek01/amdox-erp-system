@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getAssets } from "../asset/services/assetService";
 import { useNavigate } from "react-router-dom";
+import MainLayout from "../../component/layouts/MainLayout";
+import PageHeader from "../../component/ui/PageHeader";
 
 function AssetDashboard() {
   const [assets, setAssets] = useState([]);
@@ -48,83 +50,97 @@ function AssetDashboard() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Asset Dashboard</h1>
+    <MainLayout>
+      <PageHeader
+        title="Asset Analytics Dashboard"
+        subtitle="Track availability metrics, valuations, and maintenance logs for company assets."
+        backUrl="/dashboard"
+      />
 
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          flexWrap: "wrap",
-          marginTop: "20px",
-        }}
-      >
-        <div style={cardStyle}>
-          <h3>Total Assets</h3>
-          <p style={{ fontSize: "28px", fontWeight: "bold" }}>
-            {totalAssets}
-          </p>
-        </div>
+      <div style={{ marginTop: "24px" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+            marginTop: "20px",
+          }}
+        >
+          {/* Card 1 */}
+          <div style={cardStyle}>
+            <h3>Total Assets</h3>
+            <p
+              style={{
+                fontSize: "30px",
+                fontWeight: "bold",
+                margin: "10px 0 0",
+              }}
+            >
+              {totalAssets}
+            </p>
+          </div>
 
-        <div style={cardStyle}>
-          <h3>Available Assets</h3>
-          <p
-            style={{
-              fontSize: "28px",
-              fontWeight: "bold",
-              color: "green",
-            }}
-          >
-            {availableAssets}
-          </p>
-        </div>
+          {/* Card 2 */}
+          <div style={cardStyle}>
+            <h3>Available</h3>
+            <p
+              style={{
+                fontSize: "30px",
+                fontWeight: "bold",
+                margin: "10px 0 0",
+                color: "green",
+              }}
+            >
+              {availableAssets}
+            </p>
+          </div>
 
-        <div style={cardStyle}>
-          <h3>Assigned Assets</h3>
-          <p
-            style={{
-              fontSize: "28px",
-              fontWeight: "bold",
-              color: "#2563eb",
-            }}
-          >
-            {assignedAssets}
-          </p>
-        </div>
+          {/* Card 3 */}
+          <div style={cardStyle}>
+            <h3>Assigned</h3>
+            <p
+              style={{
+                fontSize: "30px",
+                fontWeight: "bold",
+                margin: "10px 0 0",
+                color: "blue",
+              }}
+            >
+              {assignedAssets}
+            </p>
+          </div>
 
-        <div style={cardStyle}>
-          <h3>Under Maintenance</h3>
-          <p
-            style={{
-              fontSize: "28px",
-              fontWeight: "bold",
-              color: "orange",
-            }}
-          >
-            {maintenanceAssets}
-          </p>
-        </div>
+          {/* Card 4 */}
+          <div style={cardStyle}>
+            <h3>Under Maintenance</h3>
+            <p
+              style={{
+                fontSize: "30px",
+                fontWeight: "bold",
+                margin: "10px 0 0",
+                color: "orange",
+              }}
+            >
+              {maintenanceAssets}
+            </p>
+          </div>
 
-        <div style={cardStyle}>
-          <h3>Total Asset Value</h3>
-          <p
-            style={{
-              fontSize: "28px",
-              fontWeight: "bold",
-              color: "red",
-            }}
-          >
-            ₹{totalAssetValue}
-          </p>
+          {/* Card 5 */}
+          <div style={cardStyle}>
+            <h3>Total Asset Valuation</h3>
+            <p
+              style={{
+                fontSize: "30px",
+                fontWeight: "bold",
+                margin: "10px 0 0",
+              }}
+            >
+              ₹{totalAssetValue}
+            </p>
+          </div>
         </div>
       </div>
-      {/* Back Button */}
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => navigate("/dashboard")}>
-          ⬅ Back to Dashboard
-        </button>
-      </div>
-    </div>
+    </MainLayout>
   );
 }
 

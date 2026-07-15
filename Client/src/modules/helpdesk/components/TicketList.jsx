@@ -1,4 +1,4 @@
-function TicketList({ tickets, onEdit, onDelete }) {
+function TicketList({ tickets, onEdit, onDelete, onSelect, role }) {
   if (tickets.length === 0) {
     return (
       <div
@@ -66,6 +66,16 @@ function TicketList({ tickets, onEdit, onDelete }) {
               <td style={thTdStyle}>{ticket.status}</td>
               <td style={thTdStyle}>
                 <button
+                  onClick={() => onSelect(ticket)}
+                  style={{
+                    ...actionButtonStyle,
+                    background: "#3b82f6",
+                  }}
+                >
+                  View
+                </button>
+
+                <button
                   onClick={() => onEdit(ticket)}
                   style={{
                     ...actionButtonStyle,
@@ -75,15 +85,17 @@ function TicketList({ tickets, onEdit, onDelete }) {
                   Edit
                 </button>
 
-                <button
-                  onClick={() => onDelete(ticket._id)}
-                  style={{
-                    ...actionButtonStyle,
-                    background: "#ef4444",
-                  }}
-                >
-                  Delete
-                </button>
+                {role !== "employee" && (
+                  <button
+                    onClick={() => onDelete(ticket._id)}
+                    style={{
+                      ...actionButtonStyle,
+                      background: "#ef4444",
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
               </td>
             </tr>
           ))}

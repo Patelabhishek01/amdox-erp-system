@@ -20,6 +20,7 @@ router.get("/:id", getCandidateById);
 
 // Update Candidate
 router.put("/:id", updateCandidate);
+router.patch("/:id/status", updateCandidate);
 
 // Delete Candidate
 router.delete("/:id", deleteCandidate);

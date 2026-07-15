@@ -425,6 +425,7 @@ import InventoryDashboard from "./modules/dashboard/InventoryDashboard";
 import Customer        from "./modules/sales/Customer";
 import AddCustomer     from "./modules/sales/pages/AddCustomer";
 import EditCustomer    from "./modules/sales/pages/EditCustomer";
+import SalesOrders     from "./modules/sales/pages/SalesOrders";
 import SalesDashboard  from "./modules/dashboard/SalesDashboard";
 
 // Purchase
@@ -604,6 +605,11 @@ function App() {
         <Route path="/sales/customers/edit/:id" element={
           <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES]}>
             <EditCustomer />
+          </PrivateRoute>
+        } />
+        <Route path="/sales/orders" element={
+          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES]}>
+            <SalesOrders />
           </PrivateRoute>
         } />
 

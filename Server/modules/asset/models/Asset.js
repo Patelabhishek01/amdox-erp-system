@@ -7,32 +7,46 @@ const assetSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    serialNumber: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     category: {
       type: String,
       trim: true,
       default: "",
+    },
+    cost: {
+      type: Number,
+      default: 0,
+    },
+    purchaseCost: {
+      type: Number,
+      default: 0,
+    },
+    purchaseDate: {
+      type: Date,
+    },
+    assignedToEmployeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
     },
     assignedTo: {
       type: String,
       trim: true,
       default: "",
     },
-    purchaseDate: {
-      type: Date,
-    },
-    purchaseCost: {
-      type: Number,
-      default: 0,
-    },
     status: {
       type: String,
-      enum: [
-        "Available",
-        "Assigned",
-        "Under Maintenance",
-        "Retired",
-      ],
+      enum: ["Available", "Assigned", "Under Maintenance", "Retired"],
       default: "Available",
+    },
+    condition: {
+      type: String,
+      enum: ["Good", "Needs Repair", "Broken"],
+      default: "Good",
     },
     description: {
       type: String,
@@ -44,5 +58,16 @@ const assetSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Pre-validate synchronization to keep both the legacy and the new field names in sync
+assetSchema.pre("validate", function (next) {
+  if (this.cost !== undefined && this.cost !== this.purchaseCost) {
+    this.purchaseCost = this.cost;
+  } else if (this.purchaseCost !== undefined && this.purchaseCost !== this.cost) {
+    this.cost = this.purchaseCost;
+  }
+
+  next();
+});
 
 module.exports = mongoose.model("Asset", assetSchema);

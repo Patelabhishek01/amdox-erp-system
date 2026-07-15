@@ -695,6 +695,7 @@ body.dark-mode .erp-table td {
 }
 
 .status-badge.pending,
+.status-badge.pending-approval,
 .status-badge.in-progress {
   background: #fef3c7;
   color: #92400e;

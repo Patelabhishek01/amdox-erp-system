@@ -3,6 +3,8 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
+import MainLayout from "../../../component/layouts/MainLayout";
+import PageHeader from "../../../component/ui/PageHeader";
 import ExpenseForm from "../Components/ExpenseForm";
 import {
   getExpenseById,
@@ -59,61 +61,45 @@ const EditExpense = () => {
 
   if (fetching) {
     return (
-      <div style={{ padding: "24px" }}>
-        Loading...
-      </div>
+      <MainLayout>
+        <div style={{ padding: "24px" }}>
+          Loading...
+        </div>
+      </MainLayout>
     );
   }
 
   if (!expense || !expense._id) {
     return (
-      <div
-        style={{
-          padding: "24px",
-          color: "red",
-        }}
-      >
-        Expense not found.
-      </div>
+      <MainLayout>
+        <div
+          style={{
+            padding: "24px",
+            color: "red",
+          }}
+        >
+          Expense not found.
+        </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div style={{ padding: "24px" }}>
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "bold",
-          marginBottom: "24px",
-        }}
-      >
-        Edit Expense
-      </h1>
-
-      <ExpenseForm
-        initialData={expense}
-        onSubmit={handleUpdate}
-        loading={loading}
+    <MainLayout>
+      <PageHeader
+        title="Edit Expense"
+        subtitle={`Modify expense details for record: ${expense.title}`}
+        backUrl="/finance/expenses"
       />
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() =>
-            navigate("/finance/expenses")
-          }
-          style={{
-            backgroundColor: "#3a8c1a",
-            color: "#ffffff",
-            border: "none",
-            padding: "8px 14px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginBottom: "20px",
-          }}
-        >
-          ⬅ Back
-        </button>
+
+      <div style={{ marginTop: "24px" }}>
+        <ExpenseForm
+          initialData={expense}
+          onSubmit={handleUpdate}
+          loading={loading}
+        />
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

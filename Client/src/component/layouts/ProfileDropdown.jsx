@@ -84,8 +84,8 @@ const ROLE_CONFIG = {
 export default function ProfileDropdown() {
   const navigate = useNavigate();
 
-  // Get role from localStorage
-  const role = localStorage.getItem("role") || "employee";
+  // Get role from localStorage and normalize to lowercase
+  const role = (localStorage.getItem("role") || "employee").toLowerCase();
 
   const roleConfig =
     ROLE_CONFIG[role] || {

@@ -37,10 +37,6 @@ export default function Attendance() {
       <PageHeader
         title="Attendance"
         subtitle="Track employee attendance and working hours"
-        actionText="Mark Attendance"
-        onAction={() =>
-          alert("Attendance marking functionality will be added.")
-        }
       />
 
       {/* Attendance Table */}

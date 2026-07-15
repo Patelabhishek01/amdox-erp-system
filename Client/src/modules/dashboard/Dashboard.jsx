@@ -704,6 +704,7 @@
 
 
 
+import { useState, useEffect } from "react";
 import {
   FaUsers,
   FaWallet,
@@ -715,6 +716,7 @@ import MainLayout from "../../component/layouts/MainLayout";
 import KPICard from "../../component/ui/KPICard";
 import DataTable from "../../component/ui/DataTable";
 import StatusBadge from "../../component/ui/StatusBadge";
+import { apiRequest } from "../../utils/api";
 
 const recentOrders = [
   {
@@ -755,6 +757,53 @@ const columns = [
 ];
 
 export default function Dashboard() {
+  const role = (localStorage.getItem("role") || "employee").toLowerCase();
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  const fetchUsers = async () => {
+    if (role !== "admin") return;
+    try {
+      setLoadingUsers(true);
+      const res = await apiRequest("/api/users");
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching users on dashboard:", err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const toggleUserStatus = async (userRecord) => {
+    const nextStatus = !userRecord.active;
+    const confirmMsg = nextStatus 
+      ? `Approve user account for ${userRecord.email}?`
+      : `Deactivate user account for ${userRecord.email}?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const res = await apiRequest(`/api/users/${userRecord._id}`, {
+        method: "PUT",
+        body: JSON.stringify({ active: nextStatus })
+      });
+      if (res.ok) {
+        fetchUsers();
+      } else {
+        alert("Failed to update status.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error toggling status");
+    }
+  };
+
   return (
     <MainLayout>
       {/* KPI Cards */}
@@ -789,6 +838,7 @@ export default function Dashboard() {
           icon={<FaShoppingCart />}
           change="4.7%"
           trend="down"
+          placeholder=""
         />
       </div>
 
@@ -812,6 +862,86 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Admin User Approvals Section */}
+      {role === "admin" && (
+        <div className="card" style={{ marginBottom: "24px" }}>
+          <div className="card-header">
+            <h3>User Access & Registration Approvals</h3>
+          </div>
+          <div className="card-body">
+            <div className="table-responsive">
+              {loadingUsers ? (
+                <div style={{ padding: "20px", textAlign: "center" }}>Loading login accounts...</div>
+              ) : users.length === 0 ? (
+                <div className="empty-state">No users registered in the system.</div>
+              ) : (
+                <table className="erp-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email (Domain)</th>
+                      <th>Assigned Role</th>
+                      <th>Status</th>
+                      <th>Approval Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(u => (
+                      <tr key={u._id}>
+                        <td style={{ fontWeight: "700" }}>{u.name}</td>
+                        <td>{u.email}</td>
+                        <td>
+                          <span style={{
+                            textTransform: "uppercase",
+                            fontSize: "11px",
+                            fontWeight: "600",
+                            background: "#e2e8f0",
+                            padding: "3px 8px",
+                            borderRadius: "4px"
+                          }}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{
+                            fontWeight: "700",
+                            color: u.active ? "#16a34a" : "#dc2626",
+                            background: u.active ? "#dcfce7" : "#fee2e2",
+                            padding: "4px 8px",
+                            borderRadius: "4px",
+                            fontSize: "11px"
+                          }}>
+                            {u.active ? "Active" : "Pending Approval"}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            onClick={() => toggleUserStatus(u)}
+                            style={{
+                              background: u.active ? "#ef4444" : "#3b82f6",
+                              color: "#ffffff",
+                              border: "none",
+                              padding: "6px 12px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontWeight: "600",
+                              fontSize: "12px",
+                              transition: "background 0.2s"
+                            }}
+                          >
+                            {u.active ? "Deactivate / Disable" : "Approve Account ✅"}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recent Orders Table */}
       <DataTable

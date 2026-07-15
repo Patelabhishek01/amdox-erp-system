@@ -1,4 +1,7 @@
 const Candidate = require("../models/Candidate");
+const User = require("../../auth/models/user");
+const Employee = require("../../hr/models/employee");
+const bcrypt = require("bcryptjs");
 
 // Create Candidate
 exports.createCandidate = async (req, res) => {
@@ -60,6 +63,18 @@ exports.getCandidateById = async (req, res) => {
 // Update Candidate
 exports.updateCandidate = async (req, res) => {
   try {
+    const { status } = req.body;
+    
+    // Find candidate first to check old status
+    const candidateBefore = await Candidate.findById(req.params.id);
+    if (!candidateBefore) {
+      return res.status(404).json({
+        message: "Candidate not found",
+      });
+    }
+
+    const oldStatus = candidateBefore.status;
+
     const candidate = await Candidate.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -69,10 +84,44 @@ exports.updateCandidate = async (req, res) => {
       }
     );
 
-    if (!candidate) {
-      return res.status(404).json({
-        message: "Candidate not found",
-      });
+    // If candidate status is updated to "Hired"
+    if ((status === "Hired" || candidate.status === "Hired") && oldStatus !== "Hired") {
+      try {
+        // 1. Create/find User account
+        let user = await User.findOne({ email: candidate.email });
+        if (!user) {
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash("HiredPass123!", salt);
+          
+          user = new User({
+            name: candidate.candidateName || candidate.name,
+            email: candidate.email,
+            password: hashedPassword,
+            role: "Employee"
+          });
+          await user.save();
+        }
+
+        // 2. Create/find active HR Employee document
+        let employee = await Employee.findOne({ email: candidate.email });
+        if (!employee) {
+          employee = new Employee({
+            employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+            name: candidate.candidateName || candidate.name,
+            email: candidate.email,
+            department: "Operations",
+            designation: candidate.position || candidate.appliedPosition || "Staff Member",
+            salary: 30000,
+            joiningDate: Date.now(),
+            status: "Active",
+            userId: user._id
+          });
+          await employee.save();
+        }
+        console.log(`Successfully created User and Employee records for Hired candidate: ${candidate.candidateName}`);
+      } catch (triggerError) {
+        console.error("Failed to automatically create User/Employee records on Hire:", triggerError);
+      }
     }
 
     res.status(200).json(candidate);

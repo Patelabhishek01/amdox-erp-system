@@ -6,12 +6,21 @@ const {
   getPayrolls,
   updatePayrollStatus,
   deletePayroll,
+  processPayroll,
 } = require("../controllers/payrollController");
 
 const {
   authMiddleware,
   adminMiddleware,
 } = require("../../../middleware/authMiddleware");
+
+// Process Bulk Payroll (Logs wage expenses Debit in Finance module)
+router.post(
+  "/payroll/process",
+  authMiddleware,
+  adminMiddleware,
+  processPayroll
+);
 
 // Create Payroll
 router.post(

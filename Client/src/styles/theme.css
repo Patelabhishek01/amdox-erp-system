@@ -1,0 +1,271 @@
+/* ==========================================================
+   AMDDOX ERP Theme Overrides (SAP / Odoo Inspired)
+   ========================================================== */
+
+:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: rgba(37, 99, 235, 0.1);
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #cbd5e1;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -1px rgba(15, 23, 42, 0.03);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: blur(12px);
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+}
+
+/* ─── DARK THEME OVERRIDES ─── */
+body.dark-mode,
+[data-theme="dark"] {
+  --bg-page: #090d16;
+  --bg-card: #111827;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #1f2937;
+  --sidebar-bg: #0b0f19;
+  --sidebar-text: #94a3b8;
+  --sidebar-hover: rgba(255, 255, 255, 0.04);
+  --sidebar-border: rgba(255, 255, 255, 0.04);
+  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+  --glass-bg: rgba(17, 24, 39, 0.7);
+  --glass-border: rgba(31, 41, 55, 0.4);
+  --primary-light: rgba(37, 99, 235, 0.2);
+}
+
+/* ─── SAPPHIRE CORPORATE THEME ─── */
+[data-theme="sapphire"] {
+  --primary-color: #0f4c81;
+  --primary-hover: #0b3c66;
+  --primary-light: rgba(15, 76, 129, 0.1);
+  --bg-page: #f0f4f8;
+  --bg-card: #ffffff;
+  --text-main: #102a43;
+  --text-muted: #486581;
+  --border-color: #bcccdc;
+  --sidebar-bg: #102a43;
+  --sidebar-text: #bcccdc;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 6px 24px rgba(16, 42, 67, 0.04);
+}
+
+/* ─── EMERALD GARDEN THEME ─── */
+[data-theme="emerald"] {
+  --primary-color: #059669;
+  --primary-hover: #047857;
+  --primary-light: rgba(5, 150, 105, 0.1);
+  --bg-page: #f0fdf4;
+  --bg-card: #ffffff;
+  --text-main: #064e3b;
+  --text-muted: #374151;
+  --border-color: #d1fae5;
+  --sidebar-bg: #064e3b;
+  --sidebar-text: #d1fae5;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 6px 24px rgba(6, 78, 59, 0.04);
+}
+
+/* ─── AMDOX AMBER THEME ─── */
+[data-theme="amber"] {
+  --primary-color: #d97706;
+  --primary-hover: #b45309;
+  --primary-light: rgba(217, 119, 6, 0.1);
+  --bg-page: #fefbeb;
+  --bg-card: #ffffff;
+  --text-main: #451a03;
+  --text-muted: #4b5563;
+  --border-color: #fde68a;
+  --sidebar-bg: #3f1a04;
+  --sidebar-text: #fde68a;
+  --sidebar-hover: rgba(255, 255, 255, 0.06);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 6px 24px rgba(69, 26, 3, 0.04);
+}
+
+/* ─── APPLY CUSTOM VARS ON CORE ELEMENTS ─── */
+html, body {
+  background: var(--bg-page) !important;
+  color: var(--text-main) !important;
+  font-family: var(--font-family) !important;
+  transition: background 0.3s, color 0.3s;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main) !important;
+  font-family: var(--font-family) !important;
+}
+
+p, li, a, label, span {
+  font-family: var(--font-family) !important;
+}
+
+/* Cards & Layout */
+.card, .content-card, .kpi-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  border-radius: var(--radius-lg) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s;
+}
+.card:hover, .content-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06) !important;
+}
+
+.card-header {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* Sidebar Overrides */
+.sidebar {
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--sidebar-border) !important;
+}
+.sidebar-link {
+  color: var(--sidebar-text) !important;
+}
+.sidebar-link:hover {
+  background: var(--sidebar-hover) !important;
+}
+.sidebar-link.active {
+  background: var(--primary-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px var(--primary-light) !important;
+}
+
+/* Navbars & Menus */
+.top-navbar {
+  background: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+.icon-btn {
+  background: var(--bg-page) !important;
+  color: var(--text-muted) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.icon-btn:hover {
+  background: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+
+/* Form Fields */
+.form-input, select, textarea, input[type="text"], input[type="email"], input[type="password"] {
+  background: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 10px 14px !important;
+  outline: none !important;
+  transition: border 0.2s;
+}
+.form-input:focus, select:focus, textarea:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px var(--primary-light) !important;
+}
+
+/* Buttons */
+.btn {
+  border-radius: var(--radius-sm) !important;
+  font-family: var(--font-family) !important;
+  transition: all 0.2s ease;
+}
+.btn-primary {
+  background: var(--primary-color) !important;
+  color: #ffffff !important;
+}
+.btn-primary:hover {
+  background: var(--primary-hover) !important;
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+.btn-secondary:hover {
+  background: var(--text-muted) !important;
+  color: #ffffff !important;
+}
+
+/* Tables */
+.erp-table {
+  background: var(--bg-card) !important;
+}
+.erp-table th {
+  background: var(--bg-page) !important;
+  color: var(--text-muted) !important;
+  border-bottom: 2px solid var(--border-color) !important;
+  font-weight: 600 !important;
+}
+.erp-table td {
+  border-bottom: 1px solid var(--border-color) !important;
+  color: var(--text-main) !important;
+}
+.erp-table tbody tr:hover {
+  background: var(--primary-light) !important;
+}
+
+/* Glassmorphism Classes */
+.glass-effect {
+  background: var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* Breadcrumbs CSS */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.breadcrumbs a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.breadcrumbs a:hover {
+  color: var(--primary-color);
+}
+.breadcrumbs span {
+  font-weight: 500;
+}
+
+/* Skeletons Styling */
+.skeleton-box {
+  background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-page) 50%, var(--border-color) 75%);
+  background-size: 200% 100%;
+  animation: loading-skeleton 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes loading-skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Custom Widgets styling */
+.widget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.widget-box {
+  cursor: grab;
+}
+.widget-box:active {
+  cursor: grabbing;
+}

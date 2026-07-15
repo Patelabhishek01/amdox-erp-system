@@ -91,8 +91,8 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
-  // Get role from localStorage (set during login)
-  const role = localStorage.getItem("role") || "";
+  // Get role from localStorage (set during login) and normalize to lowercase
+  const role = (localStorage.getItem("role") || "").toLowerCase();
 
   // Filter items based on role
   const visibleModules   = ALL_MODULE_ITEMS.filter(

@@ -7,6 +7,8 @@ const {
   createProduct,
   updateProduct,
   deleteProduct,
+  getLowStockProducts,
+  updateStock,
 } = require("../controllers/productController");
 
 // Import auth middleware
@@ -18,6 +20,12 @@ const {authMiddleware} = require("../../../middleware/authMiddleware");
 // module.exports = { protect }
 const protect =
   authMiddleware.protect || authMiddleware;
+
+// GET low-stock products
+router.get("/low-stock", protect, getLowStockProducts);
+
+// PATCH update-stock
+router.patch("/update-stock", protect, updateStock);
 
 // GET all products
 router.get("/", protect, getProducts);

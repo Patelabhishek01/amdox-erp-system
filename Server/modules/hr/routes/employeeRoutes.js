@@ -11,14 +11,15 @@ const {
 
 const {
   authMiddleware,
-  adminMiddleware
+  adminMiddleware,
+  checkRole
 } = require("../../../middleware/authMiddleware");
 
-// Create Employee (Admin only)
+// Create Employee (Admin & HR)
 router.post(
   "/employees",
   authMiddleware,
-  adminMiddleware,
+  checkRole(["admin", "hr"]),
   createEmployee
 );
 

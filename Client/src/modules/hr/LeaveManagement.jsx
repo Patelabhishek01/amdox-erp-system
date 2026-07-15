@@ -10,6 +10,7 @@ const LeaveManagement = () => {
 
   const [employees, setEmployees] = useState([]);
   const [leaves, setLeaves] = useState([]);
+  const [showForm, setShowForm] = useState(false);
 
   const [formData, setFormData] = useState({
     employee: "",
@@ -122,6 +123,7 @@ const LeaveManagement = () => {
       });
 
       fetchLeaves();
+      setShowForm(false);
     } catch (error) {
       console.error("Error applying leave:", error);
       alert("Something went wrong");
@@ -163,17 +165,13 @@ const LeaveManagement = () => {
       <PageHeader
         title="Leave Management"
         subtitle="Apply for leave and manage approval workflow"
-        actionText="Apply Leave"
-        onAction={() =>
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          })
-        }
+        actionText={showForm ? "Hide Form" : "Apply Leave"}
+        onAction={() => setShowForm(!showForm)}
       />
 
       {/* Leave Application Form */}
-      <div className="card">
+      {showForm && (
+        <div className="card">
         <div className="card-header">
           <h3>Leave Application Form</h3>
         </div>
@@ -256,6 +254,7 @@ const LeaveManagement = () => {
           </form>
         </div>
       </div>
+      )}
 
       {/* Leave Requests Table */}
       <div className="card">

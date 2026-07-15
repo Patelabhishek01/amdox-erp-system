@@ -2,6 +2,16 @@ const mongoose = require("mongoose");
 
 const ticketSchema = new mongoose.Schema(
   {
+    ticketId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    raisedByUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     title: {
       type: String,
       required: true,
@@ -11,6 +21,11 @@ const ticketSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "",
+    },
+    associatedAssetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Asset",
+      default: null,
     },
     assignedTo: {
       type: String,

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import MainLayout from "../../component/layouts/MainLayout";
+import PageHeader from "../../component/ui/PageHeader";
 import {
   BarChart,
   Bar,
@@ -24,59 +26,50 @@ const HRDashboard = () => {
   useEffect(() => {
     fetchAllData();
   }, []);
-    useEffect(() => {
+
+  useEffect(() => {
     const role = localStorage.getItem("role");
-
-    if (role !== "admin") {
-        navigate("/dashboard");
+    if (role !== "admin" && role !== "hr") {
+      navigate("/dashboard");
     }
-    }, []);
+  }, []);
+
   const fetchAllData = async () => {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
+      const headers = { Authorization: `Bearer ${token}` };
 
-    const headers = {
-      Authorization: `Bearer ${token}`
-    };
+      const [empRes, attRes, leaveRes, payRes] = await Promise.all([
+        fetch("http://localhost:5000/api/employees", { headers }),
+        fetch("http://localhost:5000/api/attendance", { headers }),
+        fetch("http://localhost:5000/api/leaves", { headers }),
+        fetch("http://localhost:5000/api/payroll", { headers })
+      ]);
 
-    const [
-      employeesRes,
-      attendanceRes,
-      leavesRes,
-      payrollsRes
-    ] = await Promise.all([
-      fetch("http://localhost:5000/api/employees", { headers }),
-      fetch("http://localhost:5000/api/attendance", { headers }),
-      fetch("http://localhost:5000/api/leaves", { headers }),
-      fetch("http://localhost:5000/api/payrolls", { headers })
-    ]);
+      const [empData, attData, leaveData, payData] = await Promise.all([
+        empRes.json(),
+        attRes.json(),
+        leaveRes.json(),
+        payRes.json()
+      ]);
 
-    const employeesData = await employeesRes.json();
-    const attendanceData = await attendanceRes.json();
-    const leavesData = await leavesRes.json();
-    const payrollsData = await payrollsRes.json();
-
-    setEmployees(Array.isArray(employeesData) ? employeesData : []);
-    setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
-    setLeaves(Array.isArray(leavesData) ? leavesData : []);
-    setPayrolls(Array.isArray(payrollsData) ? payrollsData : []);
+      setEmployees(empData);
+      setAttendance(attData);
+      setLeaves(leaveData);
+      setPayrolls(payData);
+    } catch (error) {
+      console.error("Error loading HR dashboard data:", error);
+    }
   };
 
-  // KPI Data
   const totalEmployees = employees.length;
-  const presentToday = attendance.filter(
-    (a) => a.status === "Present"
-  ).length;
-  const employeesOnLeave = leaves.filter(
-    (l) => l.status === "Approved"
-  ).length;
-  const paidPayrolls = payrolls.filter(
-    (p) => p.status === "Paid"
-  ).length;
+  const presentToday = attendance.filter((att) => att.status === "Present").length;
+  const employeesOnLeave = leaves.filter((leave) => leave.status === "Approved").length;
+  const paidPayrolls = payrolls.filter((pay) => pay.status === "Paid").length;
 
-  // Department-wise employee count
   const departmentMap = {};
   employees.forEach((emp) => {
-    const dept = emp.department || "Unknown";
+    const dept = emp.department || "Other";
     departmentMap[dept] = (departmentMap[dept] || 0) + 1;
   });
 
@@ -85,7 +78,6 @@ const HRDashboard = () => {
     count: departmentMap[dept]
   }));
 
-  // Leave status data
   const leaveStatusMap = {};
   leaves.forEach((leave) => {
     const status = leave.status || "Pending";
@@ -100,62 +92,67 @@ const HRDashboard = () => {
   const COLORS = ["#4CAF50", "#FF9800", "#F44336"];
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      {/* Back Button */}
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => navigate("/dashboard")}>
-          ⬅ Back to Dashboard
-        </button>
-      </div>
+    <MainLayout>
+      <PageHeader
+        title="HR Analytics Dashboard"
+        subtitle="Track employee counts, daily attendance, active leaves, and payroll logs."
+        backUrl="/dashboard"
+      />
 
-      <h1>📊 HR Analytics Dashboard</h1>
-
-      {/* KPI Cards */}
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          flexWrap: "wrap",
-          margin: "30px 0"
-        }}
-      >
-        <StatCard title="Total Employees" value={totalEmployees} />
-        <StatCard title="Present Today" value={presentToday} />
-        <StatCard title="On Leave" value={employeesOnLeave} />
-        <StatCard title="Paid Payrolls" value={paidPayrolls} />
-      </div>
-
-      {/* Department Chart */}
-      <h2>🏢 Department-wise Employees</h2>
-      <BarChart width={700} height={300} data={departmentData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="department" />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="count" fill="#2196F3" />
-      </BarChart>
-
-      {/* Leave Status Pie Chart */}
-      <h2 style={{ marginTop: "40px" }}>🌴 Leave Status Distribution</h2>
-      <PieChart width={500} height={350}>
-        <Pie
-          data={leaveStatusData}
-          dataKey="value"
-          nameKey="name"
-          outerRadius={120}
-          label
+      <div style={{ marginTop: "24px" }}>
+        {/* KPI Cards */}
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+            margin: "30px 0"
+          }}
         >
-          {leaveStatusData.map((entry, index) => (
-            <Cell
-              key={index}
-              fill={COLORS[index % COLORS.length]}
-            />
-          ))}
-        </Pie>
-        <Tooltip />
-        <Legend />
-      </PieChart>
-    </div>
+          <StatCard title="Total Employees" value={totalEmployees} />
+          <StatCard title="Present Today" value={presentToday} />
+          <StatCard title="On Leave" value={employeesOnLeave} />
+          <StatCard title="Paid Payrolls" value={paidPayrolls} />
+        </div>
+
+        <div style={{ display: "flex", gap: "40px", flexWrap: "wrap", marginTop: "40px" }}>
+          {/* Department Chart */}
+          <div className="card" style={{ padding: "20px", flex: "1 1 500px" }}>
+            <h2 style={{ marginBottom: "20px" }}>🏢 Department-wise Employees</h2>
+            <BarChart width={500} height={300} data={departmentData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="department" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#2196F3" />
+            </BarChart>
+          </div>
+
+          {/* Leave Status Pie Chart */}
+          <div className="card" style={{ padding: "20px", flex: "1 1 400px" }}>
+            <h2 style={{ marginBottom: "20px" }}>🌴 Leave Status Distribution</h2>
+            <PieChart width={400} height={300}>
+              <Pie
+                data={leaveStatusData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={100}
+                label
+              >
+                {leaveStatusData.map((entry, index) => (
+                  <Cell
+                    key={index}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </div>
+        </div>
+      </div>
+    </MainLayout>
   );
 };
 
@@ -166,17 +163,19 @@ const StatCard = ({ title, value }) => (
       width: "220px",
       padding: "20px",
       borderRadius: "12px",
-      background: "#f5f5f5",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+      background: "var(--bg-card)",
+      border: "1px solid var(--border-color)",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
       textAlign: "center"
     }}
   >
-    <h3>{title}</h3>
+    <h3 style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: "600", textTransform: "uppercase" }}>{title}</h3>
     <p
       style={{
-        fontSize: "28px",
+        fontSize: "36px",
         fontWeight: "bold",
-        margin: "10px 0 0"
+        margin: "10px 0 0",
+        color: "var(--text-main)"
       }}
     >
       {value}

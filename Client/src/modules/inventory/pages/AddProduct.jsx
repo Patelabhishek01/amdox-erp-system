@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import MainLayout from "../../../component/layouts/MainLayout";
+import PageHeader from "../../../component/ui/PageHeader";
 import ProductForm from "../components/ProductForm";
 import { createProduct } from "../services/productService";
 
@@ -21,46 +23,20 @@ const AddProduct = () => {
   };
 
   return (
-    <div style={{ padding: "24px" }}>
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "bold",
-          marginBottom: "24px",
-        }}
-      >
-        Add Product
-      </h1>
-
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() =>
-            navigate("/inventory/products")
-          }
-          style={{
-            backgroundColor: "#6b7280",
-            color: "#ffffff",
-            border: "none",
-            padding: "8px 14px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginBottom: "20px",
-          }}
-        >
-          ⬅ Back
-        </button>
-      </div>
-
-      <ProductForm
-        onSubmit={handleCreate}
-        loading={loading}
+    <MainLayout>
+      <PageHeader
+        title="Add Product"
+        subtitle="Catalog a new product into the inventory system."
+        backUrl="/inventory/products"
       />
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => navigate("/dashboard")}>
-          ⬅ Back to Dashboard
-        </button>
+
+      <div style={{ marginTop: "24px" }}>
+        <ProductForm
+          onSubmit={handleCreate}
+          loading={loading}
+        />
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

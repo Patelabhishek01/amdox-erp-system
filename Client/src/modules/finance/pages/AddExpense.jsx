@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import MainLayout from "../../../component/layouts/MainLayout";
+import PageHeader from "../../../component/ui/PageHeader";
 import ExpenseForm from "../Components/ExpenseForm";
 import { createExpense } from "../services/expenseService";
 
@@ -10,14 +12,10 @@ const AddExpense = () => {
   const handleCreate = async (formData) => {
     try {
       setLoading(true);
-      const response =
-  await createExpense(formData);
-
-    console.log(response);
-
-    if (response) {
-      navigate("/finance/services");
-    }
+      const response = await createExpense(formData);
+      if (response) {
+        navigate("/finance/expenses");
+      }
     } catch (error) {
       console.error("Error creating expense:", error);
       alert("Failed to create expense");
@@ -27,40 +25,20 @@ const AddExpense = () => {
   };
 
   return (
-    <div style={{ padding: "24px" }}>
-      <h1
-        style={{
-          fontSize: "32px",
-          fontWeight: "bold",
-          marginBottom: "24px",
-        }}
-      >
-        Add Expense
-      </h1>
-
-      <ExpenseForm
-        onSubmit={handleCreate}
-        loading={loading}
+    <MainLayout>
+      <PageHeader
+        title="Add Expense"
+        subtitle="Log a company expenditure with description and receipt."
+        backUrl="/finance/expenses"
       />
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() =>
-            navigate("/finance/expenses")
-          }
-          style={{
-            backgroundColor: "#6b7280",
-            color: "#ffffff",
-            border: "none",
-            padding: "8px 14px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginBottom: "20px",
-          }}
-        >
-          ⬅ Back
-        </button>
+
+      <div style={{ marginTop: "24px" }}>
+        <ExpenseForm
+          onSubmit={handleCreate}
+          loading={loading}
+        />
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

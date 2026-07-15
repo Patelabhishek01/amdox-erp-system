@@ -9,6 +9,7 @@ import {
   updateLead,
   deleteLead,
 } from "../services/crmService";
+import { createCustomer } from "../../sales/services/customerService";
 
 import MainLayout from "../../../component/layouts/MainLayout";
 import PageHeader from "../../../component/ui/PageHeader";
@@ -17,6 +18,7 @@ function CRM() {
   const [leads, setLeads] = useState([]);
   const [search, setSearch] = useState("");
   const [editingLead, setEditingLead] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
   /* =========================
      Load Leads
@@ -39,6 +41,9 @@ function CRM() {
   ========================= */
   const handleSubmit = async (formData) => {
     try {
+      const isWon = formData.stage === "Won" || formData.status === "Won";
+      const wasNotWon = !editingLead || (editingLead.stage !== "Won" && editingLead.status !== "Won");
+
       if (editingLead) {
         await updateLead(editingLead._id, formData);
         setEditingLead(null);
@@ -46,6 +51,22 @@ function CRM() {
         await createLead(formData);
       }
 
+      if (isWon && wasNotWon) {
+        try {
+          await createCustomer({
+            name: formData.name || formData.contactPerson || "Unknown",
+            email: formData.email || `won-lead-${Date.now()}@example.com`,
+            phone: formData.phone || "000-000-0000",
+            company: formData.company || formData.companyName || "N/A",
+            address: "Converted from Won Lead"
+          });
+          console.log("Customer profile automatically created for won lead.");
+        } catch (custError) {
+          console.error("Failed to automatically create Customer Profile:", custError);
+        }
+      }
+
+      setShowForm(false);
       fetchLeads();
     } catch (error) {
       console.error("Error saving lead:", error);
@@ -71,14 +92,36 @@ function CRM() {
       <PageHeader
         title="Leads & Opportunities"
         subtitle="Customer Relationship Management"
-        actionText={editingLead ? "Editing Lead" : "Add Lead"}
-        onAction={() =>
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          })
-        }
+        actionText={showForm ? "Hide Form" : (editingLead ? "Editing Lead" : "Add Lead")}
+        onAction={() => {
+          if (showForm) {
+            setEditingLead(null);
+          }
+          setShowForm(!showForm);
+        }}
       />
+
+      {/* Lead Form */}
+      {showForm && (
+        <div className="card">
+          <div className="card-header">
+            <h3>
+              {editingLead ? "Update Lead" : "Add New Lead"}
+            </h3>
+          </div>
+
+          <div className="card-body">
+            <LeadForm
+              onSubmit={handleSubmit}
+              editingLead={editingLead}
+              onCancel={() => {
+                setEditingLead(null);
+                setShowForm(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="card">
@@ -97,23 +140,6 @@ function CRM() {
         </div>
       </div>
 
-      {/* Lead Form */}
-      <div className="card">
-        <div className="card-header">
-          <h3>
-            {editingLead ? "Update Lead" : "Add New Lead"}
-          </h3>
-        </div>
-
-        <div className="card-body">
-          <LeadForm
-            onSubmit={handleSubmit}
-            editingLead={editingLead}
-            onCancel={() => setEditingLead(null)}
-          />
-        </div>
-      </div>
-
       {/* Lead List */}
       <div className="card">
         <div className="card-header">
@@ -123,7 +149,10 @@ function CRM() {
         <div className="card-body">
           <LeadList
             leads={leads}
-            onEdit={setEditingLead}
+            onEdit={(lead) => {
+              setEditingLead(lead);
+              setShowForm(true);
+            }}
             onDelete={handleDelete}
           />
         </div>

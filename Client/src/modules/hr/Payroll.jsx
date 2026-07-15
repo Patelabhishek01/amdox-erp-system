@@ -31,6 +31,7 @@ const initialPayroll = [
 export default function Payroll() {
   const [payrollRecords, setPayrollRecords] =
     useState(initialPayroll);
+  const [showForm, setShowForm] = useState(false);
 
   const [formData, setFormData] = useState({
     employeeId: "",
@@ -86,6 +87,7 @@ export default function Payroll() {
       bonus: "",
       deductions: "",
     });
+    setShowForm(false);
   };
 
   /* =========================
@@ -103,17 +105,13 @@ export default function Payroll() {
       <PageHeader
         title="Payroll"
         subtitle="Generate and process employee salaries"
-        actionText="Generate Payroll"
-        onAction={() =>
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          })
-        }
+        actionText={showForm ? "Hide Form" : "Generate Payroll"}
+        onAction={() => setShowForm(!showForm)}
       />
 
       {/* Payroll Form */}
-      <div className="card">
+      {showForm && (
+        <div className="card">
         <div className="card-header">
           <h3>Payroll Generation</h3>
         </div>
@@ -192,6 +190,7 @@ export default function Payroll() {
           </form>
         </div>
       </div>
+      )}
 
       {/* Payroll Table */}
       <div className="card">

@@ -1,14 +1,37 @@
 const Employee = require("../models/employee");
-
+const Notification = require("../../../models/Notification");
 
 // ✅ CREATE EMPLOYEE
 const createEmployee = async (req, res) => {
   try {
     const employee = new Employee(req.body);
+    
+    // If not Admin (e.g. HR), force status to "Pending Approval"
+    const isAdmin = req.user && req.user.role === "admin";
+    if (!isAdmin) {
+      employee.status = "Pending Approval";
+    }
+
     await employee.save();
 
+    // If it was created as Pending Approval, notify the Admin
+    if (!isAdmin) {
+      try {
+        const notif = new Notification({
+          title: "Employee Approval Request",
+          message: `HR user ${req.user.name || "HR"} requested approval to add employee ${employee.name} (ID: ${employee.employeeId}).`,
+          type: "warning"
+        });
+        await notif.save();
+      } catch (err) {
+        console.error("Error creating approval notification:", err);
+      }
+    }
+
     res.status(201).json({
-      message: "Employee created successfully",
+      message: isAdmin 
+        ? "Employee created successfully" 
+        : "Employee creation request submitted to Admin for approval",
       employee
     });
   } catch (error) {

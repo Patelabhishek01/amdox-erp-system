@@ -9,19 +9,22 @@ const {
   deleteTicket,
 } = require("../controllers/ticketController");
 
+const { authMiddleware } = require("../../../middleware/authMiddleware");
+const protect = authMiddleware.protect || authMiddleware;
+
 // Create Ticket
-router.post("/", createTicket);
+router.post("/", protect, createTicket);
 
 // Get All Tickets (with optional ?search=)
-router.get("/", getTickets);
+router.get("/", protect, getTickets);
 
 // Get Single Ticket
-router.get("/:id", getTicketById);
+router.get("/:id", protect, getTicketById);
 
 // Update Ticket
-router.put("/:id", updateTicket);
+router.put("/:id", protect, updateTicket);
 
 // Delete Ticket
-router.delete("/:id", deleteTicket);
+router.delete("/:id", protect, deleteTicket);
 
-module.exports = router;    
+module.exports = router;
