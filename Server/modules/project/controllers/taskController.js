@@ -6,6 +6,41 @@ const User = require("../../auth/models/user");
 const Notification = require("../../../models/Notification");
 const { sendNotification } = require("../../../utils/notify");
 
+// Helper: Resolve User for an Employee and ensure bi-directional linking
+const findUserForEmployee = async (empDoc) => {
+  if (!empDoc) return null;
+  const userFilter = [];
+  if (empDoc.userId) userFilter.push({ _id: empDoc.userId });
+  userFilter.push({ employee: empDoc._id });
+  if (empDoc.email && empDoc.email.trim()) {
+    userFilter.push({ email: { $regex: `^${empDoc.email.trim()}$`, $options: "i" } });
+  }
+  if (empDoc.name && empDoc.name.trim()) {
+    userFilter.push({ name: { $regex: `^${empDoc.name.trim()}$`, $options: "i" } });
+  }
+
+  if (userFilter.length === 0) return null;
+
+  let user = await User.findOne({ $or: userFilter });
+
+  if (user) {
+    let empModified = false;
+    let userModified = false;
+    if (!empDoc.userId || empDoc.userId.toString() !== user._id.toString()) {
+      empDoc.userId = user._id;
+      empModified = true;
+    }
+    if (!user.employee || user.employee.toString() !== empDoc._id.toString()) {
+      user.employee = empDoc._id;
+      userModified = true;
+    }
+    if (empModified) await empDoc.save().catch(() => {});
+    if (userModified) await user.save({ validateModifiedOnly: true }).catch(() => {});
+  }
+
+  return user;
+};
+
 // Helper: Notify task assignee
 const notifyTaskAssignee = async (io, taskTitle, projectId, assignedEmployeeId, triggeringUserId) => {
   if (!assignedEmployeeId) return;
@@ -14,15 +49,13 @@ const notifyTaskAssignee = async (io, taskTitle, projectId, assignedEmployeeId, 
     const empDoc = await Employee.findById(assignedEmployeeId);
     if (!empDoc) return;
 
-    let user = await User.findOne({
-      $or: [
-        { _id: empDoc.userId },
-        { employee: empDoc._id },
-        { email: { $regex: `^${(empDoc.email || "").trim()}$`, $options: "i" } }
-      ]
-    });
-
+    const user = await findUserForEmployee(empDoc);
     if (!user) return;
+
+    // Do not send notification if the assigned user is the triggering user themselves
+    if (triggeringUserId && user._id.toString() === triggeringUserId.toString()) {
+      return;
+    }
 
     const project = await Project.findById(projectId);
     const projName = project ? project.projectName : "Project";
@@ -31,7 +64,7 @@ const notifyTaskAssignee = async (io, taskTitle, projectId, assignedEmployeeId, 
     const existingNotif = await Notification.findOne({
       userId: user._id,
       title: "New Task Assigned",
-      message: { $regex: taskTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
+      message: `New task assigned: ${taskTitle}\nProject: ${projName}`
     });
 
     if (existingNotif) return;
@@ -72,13 +105,7 @@ const validateTaskAssignment = async (projectId, assignedEmployeeId, targetDueDa
     try {
       const empDoc = await Employee.findById(assignedEmployeeId);
       if (empDoc) {
-        let user = await User.findOne({
-          $or: [
-            { _id: empDoc.userId },
-            { employee: empDoc._id },
-            { email: { $regex: `^${(empDoc.email || "").trim()}$`, $options: "i" } }
-          ]
-        });
+        const user = await findUserForEmployee(empDoc);
 
         if (user) {
           const existingNotif = await Notification.findOne({

@@ -4,6 +4,73 @@ const User = require("../../auth/models/user");
 const Notification = require("../../../models/Notification");
 const { sendNotification } = require("../../../utils/notify");
 
+// Helper: Resolve User for an Employee and ensure bi-directional linking
+const findUserForEmployee = async (empDoc) => {
+  if (!empDoc) return null;
+  const userFilter = [];
+  if (empDoc.userId) userFilter.push({ _id: empDoc.userId });
+  userFilter.push({ employee: empDoc._id });
+  if (empDoc.email && empDoc.email.trim()) {
+    userFilter.push({ email: { $regex: `^${empDoc.email.trim()}$`, $options: "i" } });
+  }
+  if (empDoc.name && empDoc.name.trim()) {
+    userFilter.push({ name: { $regex: `^${empDoc.name.trim()}$`, $options: "i" } });
+  }
+
+  if (userFilter.length === 0) return null;
+
+  let user = await User.findOne({ $or: userFilter });
+
+  if (user) {
+    let empModified = false;
+    let userModified = false;
+    if (!empDoc.userId || empDoc.userId.toString() !== user._id.toString()) {
+      empDoc.userId = user._id;
+      empModified = true;
+    }
+    if (!user.employee || user.employee.toString() !== empDoc._id.toString()) {
+      user.employee = empDoc._id;
+      userModified = true;
+    }
+    if (empModified) await empDoc.save().catch(() => {});
+    if (userModified) await user.save({ validateModifiedOnly: true }).catch(() => {});
+  }
+
+  return user;
+};
+
+// Helper: Resolve Employee document ID for current authenticated User
+const getEmployeeDocIdForUser = async (reqUser) => {
+  if (!reqUser) return null;
+  if (reqUser.employeeDocId) return reqUser.employeeDocId;
+
+  const empFilter = [];
+  if (reqUser.id) empFilter.push({ userId: reqUser.id });
+  if (reqUser.email && reqUser.email.trim()) {
+    empFilter.push({ email: { $regex: `^${reqUser.email.trim()}$`, $options: "i" } });
+  }
+  if (reqUser.name && reqUser.name.trim()) {
+    empFilter.push({ name: { $regex: `^${reqUser.name.trim()}$`, $options: "i" } });
+  }
+
+  if (empFilter.length === 0) return null;
+  const emp = await Employee.findOne({ $or: empFilter });
+  if (emp) {
+    reqUser.employeeDocId = emp._id.toString();
+    reqUser.employeeId = emp.employeeId;
+
+    if (!emp.userId && reqUser.id) {
+      emp.userId = reqUser.id;
+      await emp.save().catch(() => {});
+    }
+    if (reqUser.id) {
+      await User.findByIdAndUpdate(reqUser.id, { employee: emp._id }).catch(() => {});
+    }
+    return emp._id.toString();
+  }
+  return null;
+};
+
 // Helper: Synchronize assignedTo array for backward compatibility
 const syncAssignedTo = (data) => {
   const members = Array.isArray(data.teamMembers) ? [...data.teamMembers] : [];
@@ -13,7 +80,7 @@ const syncAssignedTo = (data) => {
   return members;
 };
 
-// Helper: Resolve User for an Employee and create project assignment notification
+// Helper: Send project assignment notification to team members
 const notifyTeamMembers = async (io, project, targetEmpIds, triggeringUserId) => {
   if (!targetEmpIds || targetEmpIds.length === 0) return;
 
@@ -23,14 +90,7 @@ const notifyTeamMembers = async (io, project, targetEmpIds, triggeringUserId) =>
       const empDoc = await Employee.findById(empId);
       if (!empDoc) continue;
 
-      let user = await User.findOne({
-        $or: [
-          { _id: empDoc.userId },
-          { employee: empDoc._id },
-          { email: { $regex: `^${empDoc.email?.trim()}$`, $options: "i" } }
-        ]
-      });
-
+      const user = await findUserForEmployee(empDoc);
       if (!user) continue;
 
       // Do not send notification to triggering user
@@ -38,7 +98,7 @@ const notifyTeamMembers = async (io, project, targetEmpIds, triggeringUserId) =>
         continue;
       }
 
-      // Check if duplicate notification already exists
+      // Check if notification already exists
       const existingNotif = await Notification.findOne({
         userId: user._id,
         title: "New Project Assignment",
@@ -67,6 +127,8 @@ exports.createProject = async (req, res) => {
     // Sync legacy assignedTo array with teamMembers/projectManager
     if (projectData.teamMembers || projectData.projectManager) {
       projectData.assignedTo = syncAssignedTo(projectData);
+    } else if (projectData.assignedTo) {
+      projectData.teamMembers = [...projectData.assignedTo];
     }
 
     const project = await Project.create(projectData);
@@ -108,7 +170,7 @@ exports.getProjects = async (req, res) => {
 
     // If regular employee, only show projects where they are PM or team member
     if (!isPrivileged) {
-      const empDocId = req.user.employeeDocId;
+      const empDocId = await getEmployeeDocIdForUser(req.user);
       if (!empDocId) {
         return res.status(200).json([]);
       }
@@ -144,7 +206,7 @@ exports.getProjects = async (req, res) => {
 // Get Authenticated Employee's Projects (/api/projects/me)
 exports.getMyProjects = async (req, res) => {
   try {
-    const empDocId = req.user.employeeDocId;
+    const empDocId = await getEmployeeDocIdForUser(req.user);
     if (!empDocId) {
       return res.status(200).json([]);
     }
@@ -158,6 +220,7 @@ exports.getMyProjects = async (req, res) => {
     })
       .populate("projectManager", "name email department designation")
       .populate("teamMembers", "name email department designation")
+      .populate("assignedTo", "name email department designation")
       .sort({ createdAt: -1 });
 
     res.status(200).json(projects);
@@ -187,7 +250,7 @@ exports.getProjectById = async (req, res) => {
     const userRole = (req.user?.role || "").toLowerCase();
     const isPrivileged = ["super admin", "admin", "project manager"].includes(userRole);
     if (!isPrivileged) {
-      const empDocId = req.user.employeeDocId?.toString();
+      const empDocId = (await getEmployeeDocIdForUser(req.user))?.toString();
       const isManager = project.projectManager?._id?.toString() === empDocId;
       const isMember = project.teamMembers?.some(m => m._id?.toString() === empDocId);
       const isAssigned = project.assignedTo?.some(m => m._id?.toString() === empDocId);
@@ -216,13 +279,20 @@ exports.updateProject = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    const oldMembers = (existingProject.teamMembers || []).map(id => id.toString());
-    const oldManager = existingProject.projectManager ? existingProject.projectManager.toString() : null;
+    const oldMembers = [
+      ...(existingProject.teamMembers || []).map(id => id.toString()),
+      ...(existingProject.assignedTo || []).map(id => id.toString())
+    ];
+    if (existingProject.projectManager) {
+      oldMembers.push(existingProject.projectManager.toString());
+    }
 
     const projectData = { ...req.body };
 
     if (projectData.teamMembers || projectData.projectManager) {
       projectData.assignedTo = syncAssignedTo(projectData);
+    } else if (projectData.assignedTo) {
+      projectData.teamMembers = [...projectData.assignedTo];
     }
 
     const project = await Project.findByIdAndUpdate(
@@ -238,11 +308,15 @@ exports.updateProject = async (req, res) => {
       .populate("assignedTo", "name email department designation");
 
     // Find newly added team members or manager
-    const currentMembers = (project.teamMembers || []).map(m => m._id.toString());
-    const newlyAdded = currentMembers.filter(id => !oldMembers.includes(id));
-    if (project.projectManager && project.projectManager._id.toString() !== oldManager && !newlyAdded.includes(project.projectManager._id.toString())) {
-      newlyAdded.push(project.projectManager._id.toString());
+    const currentMembers = [
+      ...(project.teamMembers || []).map(m => m._id.toString()),
+      ...(project.assignedTo || []).map(m => m._id.toString())
+    ];
+    if (project.projectManager) {
+      currentMembers.push(project.projectManager._id.toString());
     }
+
+    const newlyAdded = [...new Set(currentMembers.filter(id => !oldMembers.includes(id)))];
 
     if (newlyAdded.length > 0) {
       await notifyTeamMembers(req.app.get("io"), project, newlyAdded, req.user?.id);

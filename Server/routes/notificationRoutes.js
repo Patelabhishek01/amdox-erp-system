@@ -7,18 +7,42 @@ const User = require("../modules/auth/models/user");
 // ✅ GET all notifications for active user
 router.get("/notifications", authMiddleware, async (req, res) => {
   try {
+    const User = require("../modules/auth/models/user");
+    const Employee = require("../modules/hr/models/employee");
+
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Fetch individual notifications, department-targeted, role-targeted, or general broadcasts
-    const notifications = await Notification.find({
-      $or: [
-        { userId: req.user.id },
-        { department: user.department },
-        { role: user.role ? user.role.toLowerCase() : "" },
-        { userId: { $exists: false }, department: { $exists: false }, role: { $exists: false } }
-      ]
-    }).sort({ createdAt: -1 });
+    // Resolve employee department if present
+    let empDept = user.department || null;
+    if (!empDept && (user.employee || req.user.employeeDocId)) {
+      const empId = user.employee || req.user.employeeDocId;
+      const emp = await Employee.findById(empId);
+      if (emp && emp.department) empDept = emp.department;
+    }
+    if (!empDept && req.employee && req.employee.department) {
+      empDept = req.employee.department;
+    }
+
+    const orConditions = [
+      { userId: req.user.id }
+    ];
+
+    if (empDept && typeof empDept === "string" && empDept.trim()) {
+      orConditions.push({ department: empDept.trim() });
+    }
+
+    if (user.role) {
+      orConditions.push({ role: user.role.toLowerCase() });
+    }
+
+    orConditions.push({
+      userId: { $exists: false },
+      department: { $exists: false },
+      role: { $exists: false }
+    });
+
+    const notifications = await Notification.find({ $or: orConditions }).sort({ createdAt: -1 });
 
     res.status(200).json(notifications);
   } catch (error) {
