@@ -11,14 +11,16 @@ const {
 
 const {
   authMiddleware,
-  adminMiddleware,
+  checkRole,
 } = require("../../../middleware/authMiddleware");
+
+const hrRoles = checkRole(["admin", "hr"]);
 
 // Process Bulk Payroll (Logs wage expenses Debit in Finance module)
 router.post(
   "/payroll/process",
   authMiddleware,
-  adminMiddleware,
+  hrRoles,
   processPayroll
 );
 
@@ -26,7 +28,7 @@ router.post(
 router.post(
   "/payrolls",
   authMiddleware,
-  adminMiddleware,
+  hrRoles,
   createPayroll
 );
 
@@ -41,7 +43,7 @@ router.get(
 router.put(
   "/payrolls/:id",
   authMiddleware,
-  adminMiddleware,
+  hrRoles,
   updatePayrollStatus
 );
 
@@ -49,7 +51,7 @@ router.put(
 router.delete(
   "/payrolls/:id",
   authMiddleware,
-  adminMiddleware,
+  hrRoles,
   deletePayroll
 );
 

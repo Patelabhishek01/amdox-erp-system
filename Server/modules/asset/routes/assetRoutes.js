@@ -10,22 +10,26 @@ const {
   assignAsset,
 } = require("../controllers/assetController");
 
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
+const protect = authMiddleware.protect || authMiddleware;
+const assetRoles = checkRole(["admin", "asset"]);
+
 // Create Asset
-router.post("/", createAsset);
+router.post("/", protect, assetRoles, createAsset);
 
 // Get All Assets (with optional ?search=)
-router.get("/", getAssets);
+router.get("/", protect, assetRoles, getAssets);
 
 // Get Single Asset
-router.get("/:id", getAssetById);
+router.get("/:id", protect, assetRoles, getAssetById);
 
 // Assign Asset
-router.patch("/:id/assign", assignAsset);
+router.patch("/:id/assign", protect, assetRoles, assignAsset);
 
 // Update Asset
-router.put("/:id", updateAsset);
+router.put("/:id", protect, assetRoles, updateAsset);
 
 // Delete Asset
-router.delete("/:id", deleteAsset);
+router.delete("/:id", protect, assetRoles, deleteAsset);
 
 module.exports = router;

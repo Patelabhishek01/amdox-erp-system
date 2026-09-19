@@ -8,6 +8,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
 const app = express();
+app.set("trust proxy", 1);
 const server = http.createServer(app);
 
 // ─── Socket.IO Setup ──────────────────────────────────────────────────────────
@@ -92,12 +93,14 @@ const projectModule = require("./modules/project");
 const helpdeskModule = require("./modules/helpdesk");
 const assetModule = require("./modules/asset");
 const recruitmentModule = require("./modules/recruitment");
+const essModule = require("./modules/ess");
 
 // Core Upgraded Routes
 const notificationRoutes = require("./routes/notificationRoutes");
 const settingRoutes = require("./routes/settingRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const recordRoutes = require("./routes/recordRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 // ─── Route Registrations ───────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
@@ -118,12 +121,14 @@ app.use("/api/projects", projectModule.projectRoutes);
 app.use(["/api/helpdesk/tickets", "/api/tickets"], helpdeskModule.ticketRoutes);
 app.use("/api/assets", assetModule.assetRoutes);
 app.use("/api/candidates", recruitmentModule.candidateRoutes);
+app.use("/api/ess", essModule.essRoutes);
 
 // Core Additions
 app.use("/api", notificationRoutes);
 app.use("/api", settingRoutes);
 app.use("/api", aiRoutes);
 app.use("/api", recordRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 const connectDB = require("./config/db");
 connectDB();

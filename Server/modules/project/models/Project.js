@@ -7,11 +7,19 @@ const projectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    assignedTo: {
-      type: String,
-      trim: true,
-      default: "",
+    projectManager: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
     },
+    teamMembers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+    }],
+    assignedTo: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+    }],
     dueDate: {
       type: Date,
     },

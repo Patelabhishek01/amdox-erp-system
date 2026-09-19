@@ -6,11 +6,14 @@ import PageHeader from "../../component/ui/PageHeader";
 import StatusBadge from "../../component/ui/StatusBadge";
 
 const LeaveManagement = () => {
-  const role = localStorage.getItem("role");
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+  const isAdminOrHR = ["admin", "hr"].includes(role);
 
   const [employees, setEmployees] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [showForm, setShowForm] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const [formData, setFormData] = useState({
     employee: "",
@@ -24,9 +27,11 @@ const LeaveManagement = () => {
      Initial Load
   ========================= */
   useEffect(() => {
-    fetchEmployees();
+    if (isAdminOrHR) {
+      fetchEmployees();
+    }
     fetchLeaves();
-  }, []);
+  }, [isAdminOrHR]);
 
   /* =========================
      Fetch Employees
@@ -36,7 +41,7 @@ const LeaveManagement = () => {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        "http://localhost:5000/api/employees",
+        `${API_URL}/api/employees`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -44,10 +49,15 @@ const LeaveManagement = () => {
         }
       );
 
-      const data = await res.json();
-      setEmployees(data);
+      if (res.ok) {
+        const data = await res.json();
+        setEmployees(Array.isArray(data) ? data : []);
+      } else {
+        setEmployees([]);
+      }
     } catch (error) {
       console.error("Error fetching employees:", error);
+      setEmployees([]);
     }
   };
 
@@ -59,7 +69,7 @@ const LeaveManagement = () => {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        "http://localhost:5000/api/leaves",
+        `${API_URL}/api/leaves`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,10 +77,15 @@ const LeaveManagement = () => {
         }
       );
 
-      const data = await res.json();
-      setLeaves(data);
+      if (res.ok) {
+        const data = await res.json();
+        setLeaves(Array.isArray(data) ? data : []);
+      } else {
+        setLeaves([]);
+      }
     } catch (error) {
       console.error("Error fetching leaves:", error);
+      setLeaves([]);
     }
   };
 
@@ -94,7 +109,7 @@ const LeaveManagement = () => {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        "http://localhost:5000/api/leaves",
+        `${API_URL}/api/leaves`,
         {
           method: "POST",
           headers: {
@@ -138,7 +153,7 @@ const LeaveManagement = () => {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `http://localhost:5000/api/leaves/${id}`,
+        `${API_URL}/api/leaves/${id}`,
         {
           method: "PUT",
           headers: {
@@ -164,13 +179,13 @@ const LeaveManagement = () => {
       <HRSubNav />
       <PageHeader
         title="Leave Management"
-        subtitle="Apply for leave and manage approval workflow"
-        actionText={showForm ? "Hide Form" : "Apply Leave"}
-        onAction={() => setShowForm(!showForm)}
+        subtitle={isAdminOrHR ? "Manage employee leave approval workflow" : "Apply for leave and view status"}
+        actionText={!isAdminOrHR ? (showForm ? "Hide Form" : "Apply Leave") : null}
+        onAction={!isAdminOrHR ? () => setShowForm(!showForm) : undefined}
       />
 
       {/* Leave Application Form */}
-      {showForm && (
+      {!isAdminOrHR && showForm && (
         <div className="card">
         <div className="card-header">
           <h3>Leave Application Form</h3>
@@ -178,22 +193,6 @@ const LeaveManagement = () => {
 
         <div className="card-body">
           <form onSubmit={handleSubmit} className="form-grid">
-            {/* Employee Select */}
-            <select
-              name="employee"
-              value={formData.employee}
-              onChange={handleChange}
-              required
-              className="form-input"
-            >
-              <option value="">Select Employee</option>
-              {employees.map((emp) => (
-                <option key={emp._id} value={emp._id}>
-                  {emp.employeeId} - {emp.name}
-                </option>
-              ))}
-            </select>
-
             {/* Leave Type */}
             <select
               name="leaveType"
@@ -272,7 +271,7 @@ const LeaveManagement = () => {
                 <th>End Date</th>
                 <th>Reason</th>
                 <th>Status</th>
-                {role === "admin" && <th>Actions</th>}
+                {isAdminOrHR && <th>Actions</th>}
               </tr>
             </thead>
 
@@ -301,7 +300,7 @@ const LeaveManagement = () => {
                       />
                     </td>
 
-                    {role === "admin" && (
+                    {isAdminOrHR && (
                       <td>
                         <div className="action-buttons">
                           <button
@@ -336,7 +335,7 @@ const LeaveManagement = () => {
                 <tr>
                   <td
                     colSpan={
-                      role === "admin" ? 7 : 6
+                      isAdminOrHR ? 7 : 6
                     }
                     className="empty-state"
                   >

@@ -9,7 +9,6 @@ import {
   updateLead,
   deleteLead,
 } from "../services/crmService";
-import { createCustomer } from "../../sales/services/customerService";
 
 import MainLayout from "../../../component/layouts/MainLayout";
 import PageHeader from "../../../component/ui/PageHeader";
@@ -41,29 +40,11 @@ function CRM() {
   ========================= */
   const handleSubmit = async (formData) => {
     try {
-      const isWon = formData.stage === "Won" || formData.status === "Won";
-      const wasNotWon = !editingLead || (editingLead.stage !== "Won" && editingLead.status !== "Won");
-
       if (editingLead) {
         await updateLead(editingLead._id, formData);
         setEditingLead(null);
       } else {
         await createLead(formData);
-      }
-
-      if (isWon && wasNotWon) {
-        try {
-          await createCustomer({
-            name: formData.name || formData.contactPerson || "Unknown",
-            email: formData.email || `won-lead-${Date.now()}@example.com`,
-            phone: formData.phone || "000-000-0000",
-            company: formData.company || formData.companyName || "N/A",
-            address: "Converted from Won Lead"
-          });
-          console.log("Customer profile automatically created for won lead.");
-        } catch (custError) {
-          console.error("Failed to automatically create Customer Profile:", custError);
-        }
       }
 
       setShowForm(false);

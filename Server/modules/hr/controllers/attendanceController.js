@@ -1,9 +1,26 @@
 const Attendance = require("../models/attendance");
 
+const Employee = require("../models/employee");
+
 // ✅ Mark Attendance
 const markAttendance = async (req, res) => {
   try {
-    const attendance = new Attendance(req.body);
+    const { employeeId, date, status } = req.body;
+    
+    let targetEmployeeId = employeeId;
+    if (!targetEmployeeId) {
+      const emp = await Employee.findOne({ userId: req.user.id });
+      if (!emp) return res.status(404).json({ message: "Employee profile not found." });
+      targetEmployeeId = emp._id;
+    }
+
+    const attendanceData = {
+      employee: targetEmployeeId,
+      date,
+      status
+    };
+
+    const attendance = new Attendance(attendanceData);
     await attendance.save();
 
     res.status(201).json({
@@ -29,7 +46,16 @@ const markAttendance = async (req, res) => {
 // ✅ Get All Attendance Records
 const getAttendance = async (req, res) => {
   try {
-    const records = await Attendance.find()
+    const userRole = (req.user.role || "").toLowerCase();
+    
+    let filter = {};
+    if (!["super admin", "admin", "hr manager", "hr executive"].includes(userRole)) {
+      const emp = await Employee.findOne({ userId: req.user.id });
+      if (!emp) return res.status(404).json({ message: "Employee profile not found." });
+      filter = { employee: emp._id };
+    }
+
+    const records = await Attendance.find(filter)
       .populate("employee", "employeeId name department")
       .sort({ date: -1 });
 

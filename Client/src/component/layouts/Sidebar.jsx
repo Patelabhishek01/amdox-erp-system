@@ -1,71 +1,74 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
-  FaChevronLeft, FaChevronRight, FaChevronDown, FaChevronUp,
-  FaTachometerAlt, FaUsers, FaWallet, FaBoxes, FaShoppingCart,
-  FaTruck, FaHandshake, FaTasks, FaLifeRing, FaLaptop,
-  FaUserPlus, FaChartBar,
+  FaChevronLeft,
+  FaChevronRight,
+  FaTachometerAlt,
+  FaUsers,
+  FaWallet,
+  FaBoxes,
+  FaShoppingCart,
+  FaTruck,
+  FaHandshake,
+  FaTasks,
+  FaLifeRing,
+  FaLaptop,
+  FaUserPlus,
+  FaUserShield,
+  FaUserCog,
 } from "react-icons/fa";
 
-// ─── Role-based config ─────────────────────────────────────────────────────────
+// ─── Role-based access configuration ─────────────────────────────────────────
 const MODULE_ROLES = {
-  "/dashboard":          ["admin", "hr", "finance", "inventory", "sales", "purchase", "crm", "project", "helpdesk", "asset", "employee"],
-  "/employees":          ["admin", "hr"],
-  "/finance/expenses":   ["admin", "finance"],
-  "/inventory/products": ["admin", "inventory"],
-  "/sales/customers":    ["admin", "sales", "crm"],
-  "/purchase":           ["admin", "purchase"],
-  "/crm":                ["admin", "crm", "sales"],
-  "/project":            ["admin", "project"],
-  "/helpdesk":           ["admin", "helpdesk", "employee"],
-  "/asset":              ["admin", "asset"],
-  "/recruitment":        ["admin", "hr"],
+  "/dashboard":          ["super admin", "admin", "hr manager", "hr executive", "finance manager", "accountant", "inventory manager", "store keeper", "sales manager", "sales executive", "purchase manager", "crm manager", "project manager", "help desk agent", "asset manager", "recruiter", "employee"],
+  "/admin":              ["super admin", "admin"],
+  "/users":              ["super admin", "admin"],
+  "/ess-dashboard":      ["super admin", "admin", "employee"],
+  "/employees":          ["super admin", "admin", "hr manager", "hr executive"],
+  "/project":            ["super admin", "admin", "project manager"],
+  "/finance/expenses":   ["super admin", "admin", "finance manager", "accountant"],
+  "/inventory/products": ["super admin", "admin", "inventory manager", "store keeper"],
+  "/sales/customers":    ["super admin", "admin", "sales manager", "sales executive", "crm manager"],
+  "/purchase":           ["super admin", "admin", "purchase manager"],
+  "/crm":                ["super admin", "admin", "crm manager", "sales manager"],
+  "/helpdesk":           ["super admin", "admin", "help desk agent"],
+  "/asset":              ["super admin", "admin", "asset manager"],
+  "/recruitment":        ["super admin", "admin", "recruiter", "hr manager"],
 };
 
-const DASHBOARD_ROLES = {
-  "/hr-dashboard":            ["admin", "hr"],
-  "/inventory-dashboard":     ["admin", "inventory"],
-  "/sales-dashboard":         ["admin", "sales"],
-  "/purchase-dashboard":      ["admin", "purchase"],
-  "/crm-dashboard":           ["admin", "crm"],
-  "/project-dashboard":       ["admin", "project"],
-  "/helpdesk-dashboard":      ["admin", "helpdesk"],
-  "/asset-dashboard":         ["admin", "asset"],
-  "/recruitment-dashboard":   ["admin", "hr"],
-};
-
-// ─── All items ─────────────────────────────────────────────────────────────────
-const ALL_MODULE_ITEMS = [
-  { name: "HR",          path: "/employees",          icon: <FaUsers /> },
-  { name: "Finance",     path: "/finance/expenses",   icon: <FaWallet /> },
-  { name: "Inventory",   path: "/inventory/products", icon: <FaBoxes /> },
-  { name: "Sales",       path: "/sales/customers",    icon: <FaShoppingCart /> },
-  { name: "Purchase",    path: "/purchase",           icon: <FaTruck /> },
-  { name: "CRM",         path: "/crm",                icon: <FaHandshake /> },
-  { name: "Projects",    path: "/project",            icon: <FaTasks /> },
-  { name: "Help Desk",   path: "/helpdesk",           icon: <FaLifeRing /> },
-  { name: "Assets",      path: "/asset",              icon: <FaLaptop /> },
-  { name: "Recruitment", path: "/recruitment",        icon: <FaUserPlus /> },
+// ─── Main Section Items ────────────────────────────────────────────────────────
+const MAIN_MODULES = [
+  { name: "Dashboard",    path: "/dashboard",     icon: <FaTachometerAlt /> },
+  { name: "My Workspace", path: "/ess-dashboard", icon: <FaTachometerAlt /> },
+  { name: "Admin Panel",  path: "/admin",         icon: <FaUserShield /> },
+  { name: "Users",        path: "/users",         icon: <FaUserCog /> },
 ];
 
-const ALL_DASHBOARD_ITEMS = [
-  { name: "HR Dashboard",          path: "/hr-dashboard",          icon: <FaChartBar /> },
-  { name: "Inventory Dashboard",   path: "/inventory-dashboard",   icon: <FaChartBar /> },
-  { name: "Sales Dashboard",       path: "/sales-dashboard",       icon: <FaChartBar /> },
-  { name: "Purchase Dashboard",    path: "/purchase-dashboard",    icon: <FaChartBar /> },
-  { name: "CRM Dashboard",         path: "/crm-dashboard",         icon: <FaChartBar /> },
-  { name: "Project Dashboard",     path: "/project-dashboard",     icon: <FaChartBar /> },
-  { name: "Help Desk Dashboard",   path: "/helpdesk-dashboard",    icon: <FaChartBar /> },
-  { name: "Asset Dashboard",       path: "/asset-dashboard",       icon: <FaChartBar /> },
-  { name: "Recruitment Dashboard", path: "/recruitment-dashboard", icon: <FaChartBar /> },
+// ─── Implemented Modules ───────────────────────────────────────────────────────
+const IMPLEMENTED_MODULES = [
+  { name: "HR",                 path: "/employees", icon: <FaUsers /> },
+  { name: "Project Management", path: "/project",   icon: <FaTasks /> },
 ];
 
-// ─── Sub-components ────────────────────────────────────────────────────────────
+// ─── Coming Soon Modules ───────────────────────────────────────────────────────
+const COMING_SOON_MODULES = [
+  { name: "Finance",          path: "/finance/expenses",   icon: <FaWallet /> },
+  { name: "Inventory",        path: "/inventory/products", icon: <FaBoxes /> },
+  { name: "Sales",            path: "/sales/customers",    icon: <FaShoppingCart /> },
+  { name: "Purchase",         path: "/purchase",           icon: <FaTruck /> },
+  { name: "CRM",              path: "/crm",                icon: <FaHandshake /> },
+  { name: "Help Desk",        path: "/helpdesk",           icon: <FaLifeRing /> },
+  { name: "Asset Management", path: "/asset",              icon: <FaLaptop /> },
+  { name: "Recruitment",      path: "/recruitment",        icon: <FaUserPlus /> },
+];
+
+// ─── NavItem for fully functional items ──────────────────────────────────────
 function NavItem({ item, collapsed }) {
   return (
     <NavLink
       to={item.path}
       className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+      title={collapsed ? item.name : undefined}
     >
       <span className="sidebar-icon">{item.icon}</span>
       {!collapsed && <span>{item.name}</span>}
@@ -73,39 +76,70 @@ function NavItem({ item, collapsed }) {
   );
 }
 
-function SidebarSection({ title, items, collapsed }) {
+// ─── ComingSoonItem for incomplete modules ────────────────────────────────────
+function ComingSoonItem({ item, collapsed }) {
+  return (
+    <div
+      className="sidebar-link coming-soon"
+      onClick={(e) => e.preventDefault()}
+      title={collapsed ? `${item.name} (Coming Soon)` : undefined}
+    >
+      <span className="sidebar-icon">{item.icon}</span>
+      {!collapsed && (
+        <>
+          <span>{item.name}</span>
+          <span className="coming-soon-badge">Soon</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── SidebarSection ────────────────────────────────────────────────────────────
+function SidebarSection({ title, items, collapsed, isComingSoon = false }) {
+  if (!items || items.length === 0) return null;
+
   return (
     <>
-      {!collapsed && items.length > 0 && (
+      {!collapsed && (
         <div className="sidebar-section-title">{title}</div>
       )}
-      {items.map((item) => (
-        <NavItem key={item.path} item={item} collapsed={collapsed} />
-      ))}
+      {items.map((item) =>
+        isComingSoon ? (
+          <ComingSoonItem key={item.path} item={item} collapsed={collapsed} />
+        ) : (
+          <NavItem key={item.path} item={item} collapsed={collapsed} />
+        )
+      )}
     </>
   );
 }
 
-// ─── Main Sidebar ──────────────────────────────────────────────────────────────
+// ─── Main Sidebar Component ───────────────────────────────────────────────────
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
-  // Get role from localStorage (set during login) and normalize to lowercase
-  const role = (localStorage.getItem("role") || "").toLowerCase();
+  // Get role from localStorage (fallback to employee)
+  const role = (localStorage.getItem("role") || "employee").toLowerCase();
 
-  // Filter items based on role
-  const visibleModules   = ALL_MODULE_ITEMS.filter(
-    (item) => MODULE_ROLES[item.path]?.includes(role)
+  // Filter main & implemented items by user role (super admin & admin see all)
+  const isSuperOrAdmin = role === "super admin" || role === "admin";
+
+  const visibleMain = MAIN_MODULES.filter(
+    (item) => isSuperOrAdmin || MODULE_ROLES[item.path]?.includes(role)
   );
-  const visibleDashboards = ALL_DASHBOARD_ITEMS.filter(
-    (item) => DASHBOARD_ROLES[item.path]?.includes(role)
+
+  const visibleImplemented = IMPLEMENTED_MODULES.filter(
+    (item) => isSuperOrAdmin || MODULE_ROLES[item.path]?.includes(role)
+  );
+
+  const visibleComingSoon = COMING_SOON_MODULES.filter(
+    (item) => isSuperOrAdmin || MODULE_ROLES[item.path]?.includes(role)
   );
 
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-
-      {/* Header */}
+      {/* Brand Header */}
       <div className="sidebar-header">
         {!collapsed ? (
           <div className="sidebar-brand">
@@ -122,6 +156,7 @@ export default function Sidebar() {
           type="button"
           className="sidebar-toggle"
           onClick={() => setCollapsed(!collapsed)}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </button>
@@ -129,54 +164,27 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-
-        {/* Main Dashboard — visible to all */}
+        {/* Main Section (Dashboard, etc.) */}
         <SidebarSection
           title="Main"
-          items={[{ name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt /> }]}
+          items={visibleMain}
           collapsed={collapsed}
         />
 
-        {/* Role-filtered Modules */}
+        {/* Implemented Section */}
         <SidebarSection
-          title="Modules"
-          items={visibleModules}
+          title="Implemented"
+          items={visibleImplemented}
           collapsed={collapsed}
         />
 
-        {/* Analytics — only show if user has at least one dashboard */}
-        {visibleDashboards.length > 0 && (
-          <>
-            {!collapsed && (
-              <div className="sidebar-section-title">Analytics</div>
-            )}
-
-            <button
-              type="button"
-              className={`sidebar-link analytics-toggle ${analyticsOpen ? "active" : ""}`}
-              onClick={() => setAnalyticsOpen(!analyticsOpen)}
-            >
-              <span className="sidebar-icon"><FaChartBar /></span>
-              {!collapsed && (
-                <>
-                  <span>Analytics Dashboard</span>
-                  <span style={{ marginLeft: "auto", fontSize: "12px" }}>
-                    {analyticsOpen ? <FaChevronUp /> : <FaChevronDown />}
-                  </span>
-                </>
-              )}
-            </button>
-
-            {analyticsOpen && (
-              <div className="analytics-children">
-                {visibleDashboards.map((item) => (
-                  <NavItem key={item.path} item={item} collapsed={collapsed} />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
+        {/* Coming Soon Section */}
+        <SidebarSection
+          title="Coming Soon"
+          items={visibleComingSoon}
+          collapsed={collapsed}
+          isComingSoon={true}
+        />
       </nav>
 
       {/* Footer */}
@@ -188,229 +196,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
-
-
-// import { useState } from "react";
-// import { NavLink } from "react-router-dom";
-// import {
-//   FaChevronLeft,
-//   FaChevronRight,
-//   FaChevronDown,
-//   FaChevronUp,
-//   FaTachometerAlt,
-//   FaUsers,
-//   FaWallet,
-//   FaBoxes,
-//   FaShoppingCart,
-//   FaTruck,
-//   FaHandshake,
-//   FaTasks,
-//   FaLifeRing,
-//   FaLaptop,
-//   FaUserPlus,
-//   FaGraduationCap,
-//   FaChartBar,
-// } from "react-icons/fa";
-
-// const mainDashboard = {
-//   name: "Dashboard",
-//   path: "/dashboard",
-//   icon: <FaTachometerAlt />,
-// };
-
-// const moduleItems = [
-//   { name: "HR", path: "/employees", icon: <FaUsers /> },
-//   { name: "Finance", path: "/finance/expenses", icon: <FaWallet /> },
-//   { name: "Inventory", path: "/inventory/products", icon: <FaBoxes /> },
-//   { name: "Sales", path: "/sales/customers", icon: <FaShoppingCart /> },
-//   { name: "Purchase", path: "/purchase", icon: <FaTruck /> },
-//   { name: "CRM", path: "/crm", icon: <FaHandshake /> },
-//   { name: "Projects", path: "/project", icon: <FaTasks /> },
-//   { name: "Help Desk", path: "/helpdesk", icon: <FaLifeRing /> },
-//   { name: "Assets", path: "/asset", icon: <FaLaptop /> },
-//   { name: "Recruitment", path: "/recruitment", icon: <FaUserPlus /> },
-//   // { name: "Training", path: "/training", icon: <FaGraduationCap /> },
-// ];
-
-// const dashboardItems = [
-//   { name: "HR Dashboard", path: "/hr-dashboard", icon: <FaChartBar /> },
-//   {
-//     name: "Inventory Dashboard",
-//     path: "/inventory-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "Sales Dashboard",
-//     path: "/sales-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "Purchase Dashboard",
-//     path: "/purchase-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "CRM Dashboard",
-//     path: "/crm-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "Project Dashboard",
-//     path: "/project-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "Help Desk Dashboard",
-//     path: "/helpdesk-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "Asset Dashboard",
-//     path: "/asset-dashboard",
-//     icon: <FaChartBar />,
-//   },
-//   {
-//     name: "Recruitment Dashboard",
-//     path: "/recruitment-dashboard",
-//     icon: <FaChartBar />,
-//   },
-// ];
-
-// function NavItem({ item, collapsed }) {
-//   return (
-//     <NavLink
-//       to={item.path}
-//       className={({ isActive }) =>
-//         `sidebar-link ${isActive ? "active" : ""}`
-//       }
-//     >
-//       <span className="sidebar-icon">{item.icon}</span>
-//       {!collapsed && <span>{item.name}</span>}
-//     </NavLink>
-//   );
-// }
-
-// function SidebarSection({ title, items, collapsed }) {
-//   return (
-//     <>
-//       {!collapsed && (
-//         <div className="sidebar-section-title">{title}</div>
-//       )}
-
-//       {items.map((item) => (
-//         <NavItem
-//           key={item.path}
-//           item={item}
-//           collapsed={collapsed}
-//         />
-//       ))}
-//     </>
-//   );
-// }
-
-// export default function Sidebar() {
-//   const [collapsed, setCollapsed] = useState(false);
-//   const [analyticsOpen, setAnalyticsOpen] = useState(false);
-
-//   return (
-//     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
-//       {/* Header */}
-//       <div className="sidebar-header">
-//         {!collapsed ? (
-//           <div className="sidebar-brand">
-//             <div className="sidebar-logo">A</div>
-//             <div>
-//               <h2>Amdox ERP</h2>
-//               <p>Enterprise Suite</p>
-//             </div>
-//           </div>
-//         ) : (
-//           <div className="sidebar-logo center">A</div>
-//         )}
-
-//         <button
-//           type="button"
-//           className="sidebar-toggle"
-//           onClick={() => setCollapsed(!collapsed)}
-//         >
-//           {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
-//         </button>
-//       </div>
-
-//       {/* Navigation */}
-//       <nav className="sidebar-nav">
-//         {/* Main Dashboard - same as before */}
-//         <SidebarSection
-//           title="Main"
-//           items={[mainDashboard]}
-//           collapsed={collapsed}
-//         />
-
-//         {/* Modules */}
-//         <SidebarSection
-//           title="Modules"
-//           items={moduleItems}
-//           collapsed={collapsed}
-//         />
-
-//         {/* Analytics Dashboard Collapsible Section */}
-//         {!collapsed && (
-//           <div className="sidebar-section-title">Analytics</div>
-//         )}
-
-//         <button
-//           type="button"
-//           className={`sidebar-link analytics-toggle ${
-//             analyticsOpen ? "active" : ""
-//           }`}
-//           onClick={() =>
-//             setAnalyticsOpen(!analyticsOpen)
-//           }
-//         >
-//           <span className="sidebar-icon">
-//             <FaChartBar />
-//           </span>
-
-//           {!collapsed && (
-//             <>
-//               <span>Analytics Dashboard</span>
-//               <span
-//                 style={{
-//                   marginLeft: "auto",
-//                   fontSize: "12px",
-//                 }}
-//               >
-//                 {analyticsOpen ? (
-//                   <FaChevronUp />
-//                 ) : (
-//                   <FaChevronDown />
-//                 )}
-//               </span>
-//             </>
-//           )}
-//         </button>
-
-//         {/* Show child dashboards only when open */}
-//         {analyticsOpen && (
-//           <div className="analytics-children">
-//             {dashboardItems.map((item) => (
-//               <NavItem
-//                 key={item.path}
-//                 item={item}
-//                 collapsed={collapsed}
-//               />
-//             ))}
-//           </div>
-//         )}
-//       </nav>
-
-//       {/* Footer */}
-//       {!collapsed && (
-//         <div className="sidebar-footer">
-//           <p>Version 1.0.0</p>
-//         </div>
-//       )}
-//     </aside>
-//   );
-// }

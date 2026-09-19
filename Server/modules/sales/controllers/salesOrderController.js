@@ -2,6 +2,7 @@ const SalesOrder = require("../models/SalesOrder");
 const Product = require("../../inventory/models/Product");
 const Transaction = require("../../finance/models/Transaction");
 const Notification = require("../../../models/Notification");
+const { logAudit } = require("../../../utils/auditLogger");
 
 // Create Sales Order
 const createSalesOrder = async (req, res) => {
@@ -86,6 +87,8 @@ const createSalesOrder = async (req, res) => {
       }
     }
 
+    await logAudit(req, "Create Sales Order", "Sales", `Created Sales Order ${salesOrder._id}`);
+
     res.status(201).json({
       message: "Sales Order created successfully",
       salesOrder
@@ -142,6 +145,8 @@ const updateSalesOrder = async (req, res) => {
     }
 
     await order.save();
+
+    await logAudit(req, "Update Sales Order", "Sales", `Updated Sales Order ${order._id}`);
 
     // If payment status changed to Paid, log to Finance module
     if (order.paymentStatus === "Paid" && oldPaymentStatus !== "Paid") {

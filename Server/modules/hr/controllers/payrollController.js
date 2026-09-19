@@ -30,7 +30,16 @@ const createPayroll = async (req, res) => {
 // Get All Payroll Records
 const getPayrolls = async (req, res) => {
   try {
-    const payrolls = await Payroll.find()
+    const userRole = (req.user.role || "").toLowerCase();
+    
+    let filter = {};
+    if (!["super admin", "admin", "hr manager", "finance manager"].includes(userRole)) {
+      const emp = await Employee.findOne({ userId: req.user.id });
+      if (!emp) return res.status(404).json({ message: "Employee profile not found." });
+      filter = { employee: emp._id };
+    }
+
+    const payrolls = await Payroll.find(filter)
       .populate("employee", "employeeId name department designation")
       .sort({ createdAt: -1 });
 

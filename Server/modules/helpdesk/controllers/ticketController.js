@@ -1,4 +1,5 @@
 const Ticket = require("../models/Ticket");
+const { sendNotification } = require("../../../utils/notify");
 
 // Create Ticket
 exports.createTicket = async (req, res) => {
@@ -16,6 +17,15 @@ exports.createTicket = async (req, res) => {
     }
 
     const ticket = await Ticket.create(ticketData);
+
+    // Notify HelpDesk Team
+    await sendNotification(req.app.get("io"), {
+      role: "help desk agent",
+      title: `New Ticket Created: ${ticket.ticketId}`,
+      message: `A new ${ticket.priority} priority ticket has been created: ${ticket.title}`,
+      type: "warning"
+    });
+
     res.status(201).json(ticket);
   } catch (error) {
     res.status(400).json({
@@ -43,15 +53,15 @@ exports.getTickets = async (req, res) => {
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
-        { assignedTo: { $regex: search, $options: "i" } },
         { priority: { $regex: search, $options: "i" } },
         { status: { $regex: search, $options: "i" } },
       ];
     }
 
     const tickets = await Ticket.find(filter)
-      .populate("raisedByUserId")
+      .populate("raisedByUserId", "name email role")
       .populate("associatedAssetId")
+      .populate("assignedTo", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json(tickets);
@@ -67,8 +77,9 @@ exports.getTickets = async (req, res) => {
 exports.getTicketById = async (req, res) => {
   try {
     const ticket = await Ticket.findById(req.params.id)
-      .populate("raisedByUserId")
-      .populate("associatedAssetId");
+      .populate("raisedByUserId", "name email role")
+      .populate("associatedAssetId")
+      .populate("assignedTo", "name email");
 
     if (!ticket) {
       return res.status(404).json({
@@ -95,11 +106,23 @@ exports.updateTicket = async (req, res) => {
         new: true,
         runValidators: true,
       }
-    ).populate("raisedByUserId").populate("associatedAssetId");
+    ).populate("raisedByUserId", "name email role")
+     .populate("associatedAssetId")
+     .populate("assignedTo", "name email");
 
     if (!ticket) {
       return res.status(404).json({
         message: "Ticket not found",
+      });
+    }
+
+    // Notify User
+    if (ticket.raisedByUserId) {
+      await sendNotification(req.app.get("io"), {
+        userId: ticket.raisedByUserId._id || ticket.raisedByUserId,
+        title: `Ticket Updated: ${ticket.ticketId}`,
+        message: `Your ticket "${ticket.title}" status is now: ${ticket.status}`,
+        type: ticket.status === "Resolved" ? "success" : "info"
       });
     }
 

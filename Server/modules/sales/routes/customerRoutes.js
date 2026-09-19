@@ -10,28 +10,24 @@ const {
 } = require("../controllers/customerController");
 
 // Auth middleware
-const {authMiddleware} = require("../../../middleware/authMiddleware");
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
 
-// Support both:
-// module.exports = protect
-// OR
-// module.exports = { protect }
-const protect =
-  authMiddleware.protect || authMiddleware;
+const protect = authMiddleware.protect || authMiddleware;
+const salesRoles = checkRole(["admin", "sales", "crm"]);
 
 // GET all customers
-router.get("/", protect, getCustomers);
+router.get("/", protect, salesRoles, getCustomers);
 
 // CREATE customer
-router.post("/", protect, createCustomer);
+router.post("/", protect, salesRoles, createCustomer);
 
 // GET one customer
-router.get("/:id", protect, getCustomerById);
+router.get("/:id", protect, salesRoles, getCustomerById);
 
 // UPDATE customer
-router.put("/:id", protect, updateCustomer);
+router.put("/:id", protect, salesRoles, updateCustomer);
 
 // DELETE customer
-router.delete("/:id", protect, deleteCustomer);
+router.delete("/:id", protect, salesRoles, deleteCustomer);
 
 module.exports = router;

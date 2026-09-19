@@ -8,14 +8,16 @@ const {
 
 const {
   authMiddleware,
-  adminMiddleware
+  checkRole
 } = require("../../../middleware/authMiddleware");
 
-// Mark Attendance (Admin only)
+const hrRoles = checkRole(["admin", "hr"]);
+
+// Mark Attendance (Admin & HR)
 router.post(
   "/attendance",
   authMiddleware,
-  adminMiddleware,
+  hrRoles,
   markAttendance
 );
 

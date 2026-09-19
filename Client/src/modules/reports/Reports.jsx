@@ -19,10 +19,16 @@ const Reports = () => {
   const fetchUsers = async () => {
     try {
       const res = await apiRequest("/api/users");
-      const data = await res.json();
-      setUsers(data);
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } else {
+        console.error("Server returned an error status:", res.status);
+        setUsers([]);
+      }
     } catch (err) {
       console.error("Error fetching users for report:", err);
+      setUsers([]);
     }
   };
 

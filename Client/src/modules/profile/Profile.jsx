@@ -62,6 +62,7 @@ export default function Profile() {
         const data = await res.json();
         if (!data.socialLinks) data.socialLinks = { github: "", linkedin: "", twitter: "" };
         if (!data.emergencyContact) data.emergencyContact = { name: "", phone: "", relationship: "" };
+        if (!data.skills) data.skills = [];
         setUser(data);
       }
     } catch (err) {
@@ -502,7 +503,7 @@ export default function Profile() {
               {/* Skills Area */}
               <h4 style={{ margin: "0" }}>Skills & Specialties</h4>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", margin: "8px 0" }}>
-                {user.skills.map((skill, idx) => (
+                {(user.skills || []).map((skill, idx) => (
                   <span
                     key={idx}
                     style={{

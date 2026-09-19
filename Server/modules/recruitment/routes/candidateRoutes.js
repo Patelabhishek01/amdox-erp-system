@@ -9,20 +9,24 @@ const {
   deleteCandidate,
 } = require("../controllers/candidateController");
 
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
+const protect = authMiddleware.protect || authMiddleware;
+const hrRoles = checkRole(["admin", "hr"]);
+
 // Create Candidate
-router.post("/", createCandidate);
+router.post("/", protect, hrRoles, createCandidate);
 
 // Get All Candidates (with optional ?search=)
-router.get("/", getCandidates);
+router.get("/", protect, hrRoles, getCandidates);
 
 // Get Single Candidate
-router.get("/:id", getCandidateById);
+router.get("/:id", protect, hrRoles, getCandidateById);
 
 // Update Candidate
-router.put("/:id", updateCandidate);
-router.patch("/:id/status", updateCandidate);
+router.put("/:id", protect, hrRoles, updateCandidate);
+router.patch("/:id/status", protect, hrRoles, updateCandidate);
 
 // Delete Candidate
-router.delete("/:id", deleteCandidate);
+router.delete("/:id", protect, hrRoles, deleteCandidate);
 
 module.exports = router;

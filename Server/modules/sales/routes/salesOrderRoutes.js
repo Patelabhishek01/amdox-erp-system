@@ -6,12 +6,13 @@ const {
   getSalesOrderById,
   updateSalesOrder
 } = require("../controllers/salesOrderController");
-const { authMiddleware } = require("../../../middleware/authMiddleware");
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
 const protect = authMiddleware.protect || authMiddleware;
+const salesRoles = checkRole(["admin", "sales"]);
 
-router.post("/", protect, createSalesOrder);
-router.get("/", protect, getSalesOrders);
-router.get("/:id", protect, getSalesOrderById);
-router.put("/:id", protect, updateSalesOrder);
+router.post("/", protect, salesRoles, createSalesOrder);
+router.get("/", protect, salesRoles, getSalesOrders);
+router.get("/:id", protect, salesRoles, getSalesOrderById);
+router.put("/:id", protect, salesRoles, updateSalesOrder);
 
 module.exports = router;

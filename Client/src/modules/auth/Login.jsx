@@ -6,7 +6,7 @@ import { Compass, KeyRound, Award } from "lucide-react";
 import { FaGithub, FaGoogle, FaMicrosoft } from "react-icons/fa";
 
 const ROLE_REDIRECT = {
-  admin: "/dashboard",
+  admin: "/admin",
   hr: "/hr-dashboard",
   finance: "/finance/expenses",
   inventory: "/inventory-dashboard",
@@ -88,7 +88,7 @@ export const LoginForm = () => {
 
         const token = data.accessToken || data.token;
         const refreshToken = data.refreshToken;
-        const role = data.user?.role || "employee";
+        const role = (data.user?.role || "employee").toLowerCase();
         const user = data.user;
 
         saveAuthData({ token, role, user });
@@ -207,39 +207,10 @@ export const LoginForm = () => {
     }
   };
 
-  // Trigger Mock OAuth Sign-In (Creates or logs in user dynamically)
-  const handleSocialLogin = async (provider) => {
-    setLoading(true);
-    setError("");
-    
-    // Demo account details
-    const email = `${provider}@amdox-erp.com`;
-    const name = `Demo ${provider.charAt(0).toUpperCase() + provider.slice(1)} User`;
-    const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0f4c81&color=fff`;
-
-    try {
-      const res = await fetch(`${API_URL}/api/auth/social-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, email, name, avatar })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        const token = data.accessToken || data.token;
-        saveAuthData({ token, role: data.user.role, user: data.user });
-        if (data.refreshToken) {
-          localStorage.setItem("refreshToken", data.refreshToken);
-        }
-        navigate("/dashboard", { replace: true });
-      } else {
-        setError(data.message || "OAuth login failed");
-      }
-    } catch (err) {
-      setError("OAuth server request failed.");
-    } finally {
-      setLoading(false);
-    }
+  // Handle Social Login (GitHub, Microsoft, Google)
+  const handleSocialLogin = (provider) => {
+    const formattedProvider = provider.charAt(0).toUpperCase() + provider.slice(1);
+    setError(`${formattedProvider} sign-in is currently not configured for this enterprise workspace. Please log in using your corporate email and password.`);
   };
 
   return (

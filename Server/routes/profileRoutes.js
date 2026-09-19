@@ -8,6 +8,7 @@ const User = require("../modules/auth/models/user");
 const Employee = require("../modules/hr/models/employee");
 const bcrypt = require("bcryptjs");
 const AuditLog = require("../models/AuditLog");
+const { ALL_ROLES } = require("../config/roles");
 
 // ─── Multer Upload Setup ───────────────────────────────────────────────────────
 const storage = multer.diskStorage({
@@ -49,9 +50,24 @@ router.get("/profile", authMiddleware, async (req, res) => {
     
     const userObj = user.toObject();
     // Try to find matching Employee record in HR
-    const employeeDoc = await Employee.findOne({ userId: req.user.id });
+    let employeeDoc = null;
+    if (user.employee) {
+      employeeDoc = await Employee.findById(user.employee);
+    }
+    if (!employeeDoc) {
+      employeeDoc = await Employee.findOne({ userId: req.user.id });
+    }
     if (employeeDoc) {
       userObj.employeeRecordId = employeeDoc._id;
+      userObj.employeeId = employeeDoc.employeeId;
+      userObj.department = employeeDoc.department;
+      userObj.designation = employeeDoc.designation;
+      userObj.joiningDate = employeeDoc.joiningDate;
+      userObj.employmentStatus = employeeDoc.status;
+      if (!user.employee) {
+        user.employee = employeeDoc._id;
+        await user.save({ validateModifiedOnly: true });
+      }
     }
     
     res.json(userObj);
@@ -193,14 +209,21 @@ router.post("/users", authMiddleware, adminMiddleware, async (req, res) => {
     const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
+    // Map role to proper casing from ALL_ROLES
+    let matchedRole = "Employee";
+    if (role) {
+      const normalizedReqRole = role.toLowerCase();
+      const foundRole = ALL_ROLES.find(r => r.toLowerCase() === normalizedReqRole);
+      if (foundRole) {
+        matchedRole = foundRole;
+      }
+    }
+
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      role: role.toLowerCase(),
-      department: department || "Operations",
-      designation: designation || "Staff Member",
-      employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      role: matchedRole,
       isFirstLogin: true,
       failedLoginAttempts: 0,
       lockUntil: null,
@@ -208,6 +231,21 @@ router.post("/users", authMiddleware, adminMiddleware, async (req, res) => {
     });
 
     await newUser.save();
+
+    // Automatically create corresponding Employee profile
+    const employeeIdVal = `EMP-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newEmployee = new Employee({
+      employeeId: employeeIdVal,
+      name,
+      email,
+      userId: newUser._id,
+      department: department || "Operations",
+      designation: designation || (matchedRole === "Admin" ? "Administrator" : "Staff Member"),
+      salary: matchedRole === "Admin" ? 100000 : 30000,
+      joiningDate: new Date(),
+      status: "Active"
+    });
+    await newEmployee.save();
 
     // Log the user creation
     const ipAddress = req.headers["x-forwarded-for"] || req.socket.remoteAddress;

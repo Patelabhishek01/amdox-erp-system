@@ -6,14 +6,63 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const speakeasy = require("speakeasy");
 const QRCode = require("qrcode");
+const { ALL_ROLES } = require("../../../config/roles");
+const Employee = require("../../hr/models/employee");
 
 const JWT_SECRET = process.env.JWT_SECRET || "SecretKey897123";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "RefreshSecretKey789";
 
+// Helper: Ensure User <-> Employee bidirectional link
+const ensureEmployeeForUser = async (user) => {
+  let employee = null;
+  if (user.employee) {
+    employee = await Employee.findById(user.employee);
+  }
+  if (!employee) {
+    employee = await Employee.findOne({ userId: user._id });
+  }
+  if (!employee) {
+    employee = await Employee.findOne({ email: user.email });
+  }
+  if (!employee) {
+    const employeeIdVal = `EMP-${Math.floor(100000 + Math.random() * 900000)}`;
+    employee = new Employee({
+      employeeId: employeeIdVal,
+      name: user.name,
+      email: user.email,
+      userId: user._id,
+      department: "Operations",
+      designation: user.role === "Admin" ? "Administrator" : "Staff Member",
+      salary: user.role === "Admin" ? 100000 : 30000,
+      joiningDate: new Date(),
+      status: "Active"
+    });
+    await employee.save();
+  }
+
+  if (!employee.userId || employee.userId.toString() !== user._id.toString()) {
+    employee.userId = user._id;
+    await employee.save();
+  }
+  if (!user.employee || user.employee.toString() !== employee._id.toString()) {
+    user.employee = employee._id;
+    await user.save({ validateModifiedOnly: true });
+  }
+
+  return employee;
+};
+
 // Generate Token pair
-const generateTokens = (user) => {
+const generateTokens = (user, employeeDocId = null, employeeId = null) => {
+  const empDoc = employeeDocId || (user.employee ? (user.employee._id || user.employee) : null);
   const accessToken = jwt.sign(
-    { id: user._id, role: user.role, email: user.email },
+    {
+      id: user._id,
+      role: user.role,
+      email: user.email,
+      employeeDocId: empDoc ? empDoc.toString() : null,
+      employeeId: employeeId || null
+    },
     JWT_SECRET,
     { expiresIn: "15m" } // 15 minutes access token
   );
@@ -67,17 +116,46 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Match role to proper casing from ALL_ROLES
+    let matchedRole = "Employee";
+    if (role) {
+      const normalizedReqRole = role.toLowerCase();
+      const foundRole = ALL_ROLES.find(r => r.toLowerCase() === normalizedReqRole);
+      if (foundRole) {
+        matchedRole = foundRole;
+      } else {
+        return res.status(400).json({ message: "Invalid role specified" });
+      }
+    }
+
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      role: (role || "employee").toLowerCase(),
-      departmentId: departmentId || null,
-      employeeId: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
+      role: matchedRole,
       passwordHistory: [hashedPassword],
-      active: false // Inactive until approved by Admin
+      // active: false // Inactive until approved by Admin
+      active: true // TEMPORARILY TRUE: allow direct access without admin approval
     });
 
+    await newUser.save();
+
+    // Automatically create corresponding Employee profile
+    const employeeIdVal = `EMP-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newEmployee = new Employee({
+      employeeId: employeeIdVal,
+      name: newUser.name,
+      email: newUser.email,
+      userId: newUser._id,
+      department: "Operations",
+      designation: matchedRole === "Admin" ? "Administrator" : "Staff Member",
+      salary: matchedRole === "Admin" ? 100000 : 30000,
+      joiningDate: new Date(),
+      status: "Active"
+    });
+    await newEmployee.save();
+
+    newUser.employee = newEmployee._id;
     await newUser.save();
 
     // Log the user registration request
@@ -92,13 +170,14 @@ const register = async (req, res) => {
     });
     await adminNotification.save();
 
-    const io = req.app.get("socketio");
+    const io = req.app.get("io") || req.app.get("socketio");
     if (io) {
       io.emit("notification", adminNotification);
     }
 
     res.status(201).json({
-      message: "Registration request submitted successfully ✅. Please wait for an administrator to approve your account.",
+      // message: "Registration request submitted successfully ✅. Please wait for an administrator to approve your account.",
+      message: "Registration successful ✅. You can now log in directly.",
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -141,14 +220,14 @@ const login = async (req, res) => {
       
       if (user.failedLoginAttempts >= 5) {
         user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 mins lock
-        await user.save();
+        await user.save({ validateModifiedOnly: true });
         await logSecurityAction(user._id, user.name, "Account Locked", "Too many failed login attempts", req);
         return res.status(403).json({
           message: "Account locked due to 5 failed login attempts. Please try again after 15 minutes."
         });
       }
       
-      await user.save();
+      await user.save({ validateModifiedOnly: true });
       return res.status(400).json({
         message: `Invalid email or password. Attempt ${user.failedLoginAttempts} of 5.`
       });
@@ -157,11 +236,14 @@ const login = async (req, res) => {
     // Reset lockout counters on success
     user.failedLoginAttempts = 0;
     user.lockUntil = null;
-    await user.save();
+    await user.save({ validateModifiedOnly: true });
+
+    // Ensure User <-> Employee linkage
+    const employee = await ensureEmployeeForUser(user);
 
     // Check if password change is forced on first login
     if (user.isFirstLogin) {
-      const { accessToken } = generateTokens(user);
+      const { accessToken } = generateTokens(user, employee._id, employee.employeeId);
       return res.status(200).json({
         forcePasswordChange: true,
         accessToken,
@@ -169,7 +251,11 @@ const login = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
+          employeeDocId: employee._id,
+          employeeId: employee.employeeId,
+          department: employee.department,
+          designation: employee.designation
         }
       });
     }
@@ -194,8 +280,8 @@ const login = async (req, res) => {
       }
     }
 
-    // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user);
+    // Generate tokens with employee references
+    const { accessToken, refreshToken } = generateTokens(user, employee._id, employee.employeeId);
 
     // Save session in database
     const userAgent = req.headers["user-agent"] || "";
@@ -213,7 +299,7 @@ const login = async (req, res) => {
 
     // Update lastLogin
     user.lastLogin = new Date();
-    await user.save();
+    await user.save({ validateModifiedOnly: true });
 
     // Log the successful login
     await logSecurityAction(user._id, user.name, "User Logged In", `Logged in on ${device}`, req);
@@ -227,8 +313,10 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        department: user.department,
-        designation: user.designation,
+        employeeDocId: employee._id,
+        employeeId: employee.employeeId,
+        department: employee.department,
+        designation: employee.designation,
         profilePhoto: user.profilePhoto,
         twoFactorEnabled: user.twoFactorEnabled
       }
@@ -264,12 +352,8 @@ const refreshToken = async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Generate new access token
-      const accessToken = jwt.sign(
-        { id: user._id, role: user.role, email: user.email },
-        JWT_SECRET,
-        { expiresIn: "15m" }
-      );
+      const employee = await ensureEmployeeForUser(user);
+      const { accessToken } = generateTokens(user, employee._id, employee.employeeId);
 
       res.status(200).json({ accessToken });
     });
@@ -431,8 +515,6 @@ const socialLoginMock = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        department: user.department,
-        designation: user.designation,
         profilePhoto: user.profilePhoto,
         twoFactorEnabled: user.twoFactorEnabled
       }

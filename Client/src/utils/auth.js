@@ -3,7 +3,7 @@ export const getToken = () => {
 };
 
 export const getRole = () => {
-  return localStorage.getItem("role");
+  return (localStorage.getItem("role") || "").toLowerCase();
 };
 
 export const getUser = () => {
@@ -26,13 +26,16 @@ export const saveAuthData = ({
   user,
 }) => {
   localStorage.setItem("token", token);
-
   localStorage.setItem("role", role);
 
-  localStorage.setItem(
-    "user",
-    JSON.stringify(user)
-  );
+  if (user) {
+    const normalizedUser = {
+      ...user,
+      id: user.id || user._id,
+      _id: user._id || user.id,
+    };
+    localStorage.setItem("user", JSON.stringify(normalizedUser));
+  }
 };
 
 export const logout = () => {

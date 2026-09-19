@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   createEmployee,
   getEmployees,
+  getMyEmployeeProfile,
   getEmployeeById,
   updateEmployee,
   deleteEmployee
@@ -15,33 +16,45 @@ const {
   checkRole
 } = require("../../../middleware/authMiddleware");
 
+const hrRoles = checkRole(["admin", "hr"]);
+const projectAndHrRoles = checkRole(["admin", "hr", "project", "project manager"]);
+
 // Create Employee (Admin & HR)
 router.post(
   "/employees",
   authMiddleware,
-  checkRole(["admin", "hr"]),
+  hrRoles,
   createEmployee
 );
 
-// Get All Employees
+// Get All Employees (Admin, HR & Project Managers for assignment)
 router.get(
   "/employees",
   authMiddleware,
+  projectAndHrRoles,
   getEmployees
+);
+
+// Get Logged-in Employee Profile
+router.get(
+  "/employees/me",
+  authMiddleware,
+  getMyEmployeeProfile
 );
 
 // Get Single Employee
 router.get(
   "/employees/:id",
   authMiddleware,
+  hrRoles,
   getEmployeeById
 );
 
-// Update Employee (Admin only)
+// Update Employee (Admin & HR)
 router.put(
   "/employees/:id",
   authMiddleware,
-  adminMiddleware,
+  hrRoles,
   updateEmployee
 );
 

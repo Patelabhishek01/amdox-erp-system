@@ -40,8 +40,17 @@ function PrivateRoute({
 
   if (
     allowedRoles.length > 0 &&
-    !allowedRoles.includes(role)
+    !allowedRoles.includes(role) &&
+    role !== "super admin"
   ) {
+    if (location.pathname === "/dashboard") {
+      return (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <h2>Access Denied</h2>
+          <p>Your role ({role}) is not recognized or you don't have access to this page.</p>
+        </div>
+      );
+    }
     return (
       <Navigate
         to="/dashboard"

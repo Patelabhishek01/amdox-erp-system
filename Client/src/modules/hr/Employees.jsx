@@ -84,10 +84,16 @@ const Employees = () => {
     setLoading(true);
     try {
       const res = await apiRequest("/api/employees");
-      const data = await res.json();
-      setEmployees(data);
+      if (res.ok) {
+        const data = await res.json();
+        setEmployees(Array.isArray(data) ? data : []);
+      } else {
+        console.error("Server returned an error status:", res.status);
+        setEmployees([]);
+      }
     } catch (error) {
       console.error("Error fetching employees:", error);
+      setEmployees([]);
     } finally {
       setLoading(false);
     }

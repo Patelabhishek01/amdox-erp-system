@@ -170,6 +170,12 @@ p, li, a, label, span {
   outline: none !important;
   transition: border 0.2s;
 }
+/* Exception for navbar search field: reserve left padding for search icon */
+.global-search input,
+.global-search input[type="text"] {
+  padding-left: 42px !important;
+  padding-right: 14px !important;
+}
 .form-input:focus, select:focus, textarea:focus {
   border-color: var(--primary-color) !important;
   box-shadow: 0 0 0 3px var(--primary-light) !important;

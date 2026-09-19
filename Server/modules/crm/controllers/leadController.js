@@ -60,19 +60,37 @@ exports.getLeadById = async (req, res) => {
 // Update Lead
 exports.updateLead = async (req, res) => {
   try {
-    const lead = await Lead.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    const lead = await Lead.findById(req.params.id);
 
     if (!lead) {
       return res.status(404).json({
         message: "Lead not found",
       });
+    }
+
+    const wasNotWon = lead.stage !== "Won" && lead.status !== "Won";
+
+    // Apply updates
+    Object.assign(lead, req.body);
+    await lead.save();
+
+    const isWon = lead.stage === "Won" || lead.status === "Won";
+
+    // Auto-create customer if transitioned to Won
+    if (isWon && wasNotWon) {
+      try {
+        const Customer = require("../../sales/models/Customer");
+        await Customer.create({
+          name: lead.name || lead.contactPerson || "Unknown",
+          email: lead.email || `won-lead-${Date.now()}@example.com`,
+          phone: lead.phone || "000-000-0000",
+          company: lead.company || lead.companyName || "N/A",
+          address: "Converted from Won Lead"
+        });
+        console.log("Customer profile automatically created for won lead in backend.");
+      } catch (custError) {
+        console.error("Failed to automatically create Customer Profile:", custError);
+      }
     }
 
     res.status(200).json(lead);

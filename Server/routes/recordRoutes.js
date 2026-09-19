@@ -166,4 +166,23 @@ router.get("/records/:module/:recordId/logs", authMiddleware, async (req, res) =
   }
 });
 
+// ✅ GET GLOBAL SYSTEM AUDIT LOGS
+router.get("/audit-logs", authMiddleware, async (req, res) => {
+  try {
+    const userRole = (req.user && req.user.role) ? req.user.role.toLowerCase() : "";
+    if (userRole !== "super admin" && userRole !== "admin") {
+      return res.status(403).json({ message: "Access denied. Admins only." });
+    }
+
+    const { limit = 100 } = req.query;
+    const logs = await AuditLog.find()
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
+      
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching global audit logs" });
+  }
+});
+
 module.exports = router;

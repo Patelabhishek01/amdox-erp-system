@@ -27,12 +27,15 @@ const HRDashboard = () => {
     fetchAllData();
   }, []);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   useEffect(() => {
-    const role = localStorage.getItem("role");
-    if (role !== "admin" && role !== "hr") {
+    const role = (localStorage.getItem("role") || "").toLowerCase();
+    const allowed = ["admin", "super admin", "hr", "hr manager", "hr executive"];
+    if (!allowed.includes(role)) {
       navigate("/dashboard");
     }
-  }, []);
+  }, [navigate]);
 
   const fetchAllData = async () => {
     try {
@@ -40,10 +43,10 @@ const HRDashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [empRes, attRes, leaveRes, payRes] = await Promise.all([
-        fetch("http://localhost:5000/api/employees", { headers }),
-        fetch("http://localhost:5000/api/attendance", { headers }),
-        fetch("http://localhost:5000/api/leaves", { headers }),
-        fetch("http://localhost:5000/api/payroll", { headers })
+        fetch(`${API_URL}/api/employees`, { headers }),
+        fetch(`${API_URL}/api/attendance`, { headers }),
+        fetch(`${API_URL}/api/leaves`, { headers }),
+        fetch(`${API_URL}/api/payroll`, { headers })
       ]);
 
       const [empData, attData, leaveData, payData] = await Promise.all([
@@ -53,12 +56,16 @@ const HRDashboard = () => {
         payRes.json()
       ]);
 
-      setEmployees(empData);
-      setAttendance(attData);
-      setLeaves(leaveData);
-      setPayrolls(payData);
+      setEmployees(Array.isArray(empData) ? empData : []);
+      setAttendance(Array.isArray(attData) ? attData : []);
+      setLeaves(Array.isArray(leaveData) ? leaveData : []);
+      setPayrolls(Array.isArray(payData) ? payData : []);
     } catch (error) {
       console.error("Error loading HR dashboard data:", error);
+      setEmployees([]);
+      setAttendance([]);
+      setLeaves([]);
+      setPayrolls([]);
     }
   };
 

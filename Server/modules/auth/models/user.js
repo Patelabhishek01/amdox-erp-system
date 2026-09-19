@@ -16,15 +16,12 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: [
-      "Admin", "HR", "Sales", "Finance", "Inventory", "Employee", "Purchase", "CRM", "Project", "Helpdesk", "Asset",
-      "admin", "hr", "sales", "finance", "inventory", "employee", "purchase", "crm", "project", "helpdesk", "asset"
-    ],
+    enum: require("../../../config/roles").ALL_ROLES,
     default: "Employee"
   },
-  departmentId: {
+  employee: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Department",
+    ref: "Employee",
     default: null
   },
   phone: {
@@ -42,43 +39,6 @@ const userSchema = new mongoose.Schema({
   profilePhoto: {
     type: String,
     default: ""
-  },
-  resume: {
-    type: String,
-    default: ""
-  },
-  designation: {
-    type: String,
-    default: "Staff Member"
-  },
-  department: {
-    type: String,
-    default: "Operations"
-  },
-  joiningDate: {
-    type: Date,
-    default: Date.now
-  },
-  employeeId: {
-    type: String,
-    default: ""
-  },
-  emergencyContact: {
-    name: { type: String, default: "" },
-    phone: { type: String, default: "" },
-    relationship: { type: String, default: "" }
-  },
-  bio: {
-    type: String,
-    default: ""
-  },
-  skills: [{
-    type: String
-  }],
-  socialLinks: {
-    github: { type: String, default: "" },
-    linkedin: { type: String, default: "" },
-    twitter: { type: String, default: "" }
   },
   lastLogin: {
     type: Date,
@@ -102,7 +62,28 @@ const userSchema = new mongoose.Schema({
   },
   passwordHistory: [{
     type: String
-  }]
+  }],
+  bio: {
+    type: String,
+    default: ""
+  },
+  skills: [{
+    type: String
+  }],
+  resume: {
+    type: String,
+    default: ""
+  },
+  emergencyContact: {
+    name: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    relationship: { type: String, default: "" }
+  },
+  socialLinks: {
+    github: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    twitter: { type: String, default: "" }
+  }
 }, {
   timestamps: true
 });

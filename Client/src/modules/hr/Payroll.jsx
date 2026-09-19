@@ -29,6 +29,9 @@ const initialPayroll = [
 ];
 
 export default function Payroll() {
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+  const isAdminOrHR = ["admin", "hr"].includes(role);
+
   const [payrollRecords, setPayrollRecords] =
     useState(initialPayroll);
   const [showForm, setShowForm] = useState(false);
@@ -105,12 +108,12 @@ export default function Payroll() {
       <PageHeader
         title="Payroll"
         subtitle="Generate and process employee salaries"
-        actionText={showForm ? "Hide Form" : "Generate Payroll"}
-        onAction={() => setShowForm(!showForm)}
+        actionText={isAdminOrHR ? (showForm ? "Hide Form" : "Generate Payroll") : null}
+        onAction={isAdminOrHR ? () => setShowForm(!showForm) : undefined}
       />
 
       {/* Payroll Form */}
-      {showForm && (
+      {isAdminOrHR && showForm && (
         <div className="card">
         <div className="card-header">
           <h3>Payroll Generation</h3>
@@ -210,7 +213,7 @@ export default function Payroll() {
                 <th>Deductions</th>
                 <th>Net Salary</th>
                 <th>Status</th>
-                <th>Actions</th>
+                {isAdminOrHR && <th>Actions</th>}
               </tr>
             </thead>
 
@@ -253,26 +256,28 @@ export default function Payroll() {
                           status={record.status}
                         />
                       </td>
-                      <td>
-                        {record.status !==
-                          "Paid" && (
-                          <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() =>
-                              markAsPaid(index)
-                            }
-                          >
-                            Mark Paid
-                          </button>
-                        )}
-                      </td>
+                      {isAdminOrHR && (
+                        <td>
+                          {record.status !==
+                            "Paid" && (
+                            <button
+                              className="btn btn-sm btn-primary"
+                              onClick={() =>
+                                markAsPaid(index)
+                              }
+                            >
+                              Mark Paid
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   )
                 )
               ) : (
                 <tr>
                   <td
-                    colSpan="9"
+                    colSpan={isAdminOrHR ? 9 : 8}
                     className="empty-state"
                   >
                     No payroll records found.

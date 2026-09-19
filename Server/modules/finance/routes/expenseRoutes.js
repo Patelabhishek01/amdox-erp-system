@@ -12,12 +12,15 @@ const {
 } = require("../controllers/expenseController");
 
 // ✅ Correct path + correct destructuring
-const { authMiddleware } = require("../../../middleware/authMiddleware");
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
 
-router.get("/", authMiddleware, getExpenses);
-router.post("/", authMiddleware, createExpense);
-router.get("/:id", authMiddleware, getExpenseById);
-router.put("/:id", authMiddleware, updateExpense);
-router.delete("/:id", authMiddleware, deleteExpense);
+const protect = authMiddleware.protect || authMiddleware;
+const financeRoles = checkRole(["admin", "finance"]);
+
+router.get("/", protect, financeRoles, getExpenses);
+router.post("/", protect, financeRoles, createExpense);
+router.get("/:id", protect, financeRoles, getExpenseById);
+router.put("/:id", protect, financeRoles, updateExpense);
+router.delete("/:id", protect, financeRoles, deleteExpense);
 
 module.exports = router;

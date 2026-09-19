@@ -60,19 +60,58 @@ exports.getPurchaseOrderById = async (req, res) => {
 // Update Purchase Order
 exports.updatePurchaseOrder = async (req, res) => {
   try {
-    const purchaseOrder = await PurchaseOrder.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    ).populate("vendor");
+    const purchaseOrder = await PurchaseOrder.findById(req.params.id).populate("vendor");
 
     if (!purchaseOrder) {
       return res.status(404).json({
         message: "Purchase order not found",
       });
+    }
+
+    const wasNotReceived = purchaseOrder.status !== "Received";
+
+    // Update fields
+    Object.assign(purchaseOrder, req.body);
+    
+    // Save first to apply changes
+    await purchaseOrder.save();
+
+    const isReceived = purchaseOrder.status === "Received";
+
+    // Auto-receive if transitioning to Received
+    if (isReceived && wasNotReceived) {
+      // 1. Loop through items and add back to inventory stock
+      if (purchaseOrder.items && purchaseOrder.items.length > 0) {
+        for (const item of purchaseOrder.items) {
+          let product;
+          if (item.productId) {
+            product = await Product.findById(item.productId);
+          } else {
+            product = await Product.findOne({ name: item.productName });
+          }
+
+          if (product) {
+            const currentStock = product.stockLevel !== undefined ? product.stockLevel : (product.quantity || 0);
+            const newStock = currentStock + item.quantity;
+            product.stockLevel = newStock;
+            product.quantity = newStock;
+            await product.save();
+          }
+        }
+      }
+
+      // 2. Log Accounts Payable Debit transaction in Finance
+      try {
+        await Transaction.create({
+          sourceModule: "Purchase",
+          type: "Debit",
+          amount: purchaseOrder.totalAmount,
+          referenceId: purchaseOrder._id,
+          date: Date.now()
+        });
+      } catch (finError) {
+        console.error("Failed to automatically record received purchase order bill in Finance:", finError);
+      }
     }
 
     res.status(200).json(purchaseOrder);

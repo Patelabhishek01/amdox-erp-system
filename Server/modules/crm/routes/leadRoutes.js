@@ -9,19 +9,23 @@ const {
   deleteLead,
 } = require("../controllers/leadController");
 
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
+const protect = authMiddleware.protect || authMiddleware;
+const crmRoles = checkRole(["admin", "crm", "sales"]);
+
 // Create Lead
-router.post("/", createLead);
+router.post("/", protect, crmRoles, createLead);
 
 // Get All Leads (with optional ?search=)
-router.get("/", getLeads);
+router.get("/", protect, crmRoles, getLeads);
 
 // Get Single Lead
-router.get("/:id", getLeadById);
+router.get("/:id", protect, crmRoles, getLeadById);
 
 // Update Lead
-router.put("/:id", updateLead);
+router.put("/:id", protect, crmRoles, updateLead);
 
 // Delete Lead
-router.delete("/:id", deleteLead);
+router.delete("/:id", protect, crmRoles, deleteLead);
 
 module.exports = router;

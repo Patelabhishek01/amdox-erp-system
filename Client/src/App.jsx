@@ -402,6 +402,7 @@ import Reports     from "./modules/reports/Reports";
 import Users       from "./modules/admin/Users";
 import Settings    from "./pages/Settings";
 import AIAssistant from "./pages/AIAssistant";
+import AuditLogs   from "./pages/AuditLogs";
 
 // HR
 import Employees       from "./modules/hr/Employees";
@@ -452,24 +453,44 @@ import AssetDashboard from "./modules/dashboard/AssetDashboard";
 import Recruitment           from "./modules/recruitment/pages/Recruitment";
 import RecruitmentDashboard  from "./modules/dashboard/RecruitmentDashboard";
 
+// ESS
+import ESSDashboard from "./modules/ess/EmployeeDashboard";
+
 // ─── Role definitions ──────────────────────────────────────────────────────────
 const ROLES = {
-  ADMIN:     "admin",
-  HR:        "hr",
-  FINANCE:   "finance",
-  INVENTORY: "inventory",
-  SALES:     "sales",
-  PURCHASE:  "purchase",
-  CRM:       "crm",
-  PROJECT:   "project",
-  HELPDESK:  "helpdesk",
-  ASSET:     "asset",
-  EMPLOYEE:  "employee",
+  SUPER_ADMIN:       "super admin",
+  ADMIN:             "admin",
+  HR_MANAGER:        "hr manager",
+  HR_EXECUTIVE:      "hr executive",
+  FINANCE_MANAGER:   "finance manager",
+  ACCOUNTANT:        "accountant",
+  CRM_MANAGER:       "crm manager",
+  SALES_MANAGER:     "sales manager",
+  SALES_EXECUTIVE:   "sales executive",
+  INVENTORY_MANAGER: "inventory manager",
+  STORE_KEEPER:      "store keeper",
+  PURCHASE_MANAGER:  "purchase manager",
+  PROJECT_MANAGER:   "project manager",
+  HELP_DESK_AGENT:   "help desk agent",
+  ASSET_MANAGER:     "asset manager",
+  RECRUITER:         "recruiter",
+  EMPLOYEE:          "employee",
 };
 
-// Shorthand: who can see everything
-const ALL = Object.values(ROLES);
-const ADMIN_ONLY = [ROLES.ADMIN];
+// Grouped Roles for easier routing
+const ADMIN_GROUP     = [ROLES.SUPER_ADMIN, ROLES.ADMIN];
+const HR_GROUP        = [...ADMIN_GROUP, ROLES.HR_MANAGER, ROLES.HR_EXECUTIVE];
+const FINANCE_GROUP   = [...ADMIN_GROUP, ROLES.FINANCE_MANAGER, ROLES.ACCOUNTANT];
+const INVENTORY_GROUP = [...ADMIN_GROUP, ROLES.INVENTORY_MANAGER, ROLES.STORE_KEEPER];
+const SALES_GROUP     = [...ADMIN_GROUP, ROLES.SALES_MANAGER, ROLES.SALES_EXECUTIVE];
+const PURCHASE_GROUP  = [...ADMIN_GROUP, ROLES.PURCHASE_MANAGER];
+const CRM_GROUP       = [...ADMIN_GROUP, ROLES.CRM_MANAGER, ...SALES_GROUP];
+const PROJECT_GROUP   = [...ADMIN_GROUP, ROLES.PROJECT_MANAGER];
+const HELPDESK_GROUP  = [...ADMIN_GROUP, ROLES.HELP_DESK_AGENT];
+const ASSET_GROUP     = [...ADMIN_GROUP, ROLES.ASSET_MANAGER];
+const RECRUIT_GROUP   = [...ADMIN_GROUP, ROLES.RECRUITER, ROLES.HR_MANAGER];
+const ESS_GROUP       = [...ADMIN_GROUP, ROLES.EMPLOYEE];
+const ALL             = Object.values(ROLES);
 
 function App() {
   return (
@@ -505,183 +526,195 @@ function App() {
 
         {/* ── Admin only ── */}
         <Route path="/admin" element={
-          <PrivateRoute allowedRoles={ADMIN_ONLY}>
+          <PrivateRoute allowedRoles={ADMIN_GROUP}>
             <AdminPanel />
           </PrivateRoute>
         } />
         <Route path="/users" element={
-          <PrivateRoute allowedRoles={ADMIN_ONLY}>
+          <PrivateRoute allowedRoles={ADMIN_GROUP}>
             <Users />
           </PrivateRoute>
         } />
+        <Route path="/audit-logs" element={
+          <PrivateRoute allowedRoles={ADMIN_GROUP}>
+            <AuditLogs />
+          </PrivateRoute>
+        } />
         <Route path="/reports" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.FINANCE]}>
+          <PrivateRoute allowedRoles={FINANCE_GROUP}>
             <Reports />
           </PrivateRoute>
         } />
 
         {/* ── HR Module ── */}
         <Route path="/hr-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR]}>
+          <PrivateRoute allowedRoles={HR_GROUP}>
             <HRDashboard />
           </PrivateRoute>
         } />
         <Route path="/employees" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR]}>
+          <PrivateRoute allowedRoles={HR_GROUP}>
             <Employees />
           </PrivateRoute>
         } />
         <Route path="/attendance" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR, ROLES.EMPLOYEE]}>
+          <PrivateRoute allowedRoles={[...HR_GROUP, ROLES.EMPLOYEE]}>
             <Attendance />
           </PrivateRoute>
         } />
         <Route path="/leaves" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR, ROLES.EMPLOYEE]}>
+          <PrivateRoute allowedRoles={[...HR_GROUP, ROLES.EMPLOYEE]}>
             <LeaveManagement />
           </PrivateRoute>
         } />
         <Route path="/payroll" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR]}>
+          <PrivateRoute allowedRoles={HR_GROUP}>
             <Payroll />
           </PrivateRoute>
         } />
 
         {/* ── Finance Module ── */}
         <Route path="/finance/expenses" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.FINANCE]}>
+          <PrivateRoute allowedRoles={FINANCE_GROUP}>
             <Expense />
           </PrivateRoute>
         } />
         <Route path="/finance/expenses/add" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.FINANCE]}>
+          <PrivateRoute allowedRoles={FINANCE_GROUP}>
             <AddExpense />
           </PrivateRoute>
         } />
         <Route path="/finance/expenses/edit/:id" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.FINANCE]}>
+          <PrivateRoute allowedRoles={FINANCE_GROUP}>
             <EditExpense />
           </PrivateRoute>
         } />
 
         {/* ── Inventory Module ── */}
         <Route path="/inventory-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.INVENTORY]}>
+          <PrivateRoute allowedRoles={INVENTORY_GROUP}>
             <InventoryDashboard />
           </PrivateRoute>
         } />
         <Route path="/inventory/products" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.INVENTORY]}>
+          <PrivateRoute allowedRoles={INVENTORY_GROUP}>
             <Product />
           </PrivateRoute>
         } />
         <Route path="/inventory/products/add" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.INVENTORY]}>
+          <PrivateRoute allowedRoles={INVENTORY_GROUP}>
             <AddProduct />
           </PrivateRoute>
         } />
         <Route path="/inventory/products/edit/:id" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.INVENTORY]}>
+          <PrivateRoute allowedRoles={INVENTORY_GROUP}>
             <EditProduct />
           </PrivateRoute>
         } />
 
         {/* ── Sales Module ── */}
         <Route path="/sales-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES]}>
+          <PrivateRoute allowedRoles={SALES_GROUP}>
             <SalesDashboard />
           </PrivateRoute>
         } />
         <Route path="/sales/customers" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES, ROLES.CRM]}>
+          <PrivateRoute allowedRoles={CRM_GROUP}>
             <Customer />
           </PrivateRoute>
         } />
         <Route path="/sales/customers/add" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES]}>
+          <PrivateRoute allowedRoles={SALES_GROUP}>
             <AddCustomer />
           </PrivateRoute>
         } />
         <Route path="/sales/customers/edit/:id" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES]}>
+          <PrivateRoute allowedRoles={SALES_GROUP}>
             <EditCustomer />
           </PrivateRoute>
         } />
         <Route path="/sales/orders" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.SALES]}>
+          <PrivateRoute allowedRoles={SALES_GROUP}>
             <SalesOrders />
           </PrivateRoute>
         } />
 
         {/* ── Purchase Module ── */}
         <Route path="/purchase-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.PURCHASE]}>
+          <PrivateRoute allowedRoles={PURCHASE_GROUP}>
             <PurchaseDashboard />
           </PrivateRoute>
         } />
         <Route path="/purchase" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.PURCHASE]}>
+          <PrivateRoute allowedRoles={PURCHASE_GROUP}>
             <Purchase />
           </PrivateRoute>
         } />
 
         {/* ── CRM Module ── */}
         <Route path="/crm-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.CRM]}>
+          <PrivateRoute allowedRoles={CRM_GROUP}>
             <CRMDashboard />
           </PrivateRoute>
         } />
         <Route path="/crm" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.CRM, ROLES.SALES]}>
+          <PrivateRoute allowedRoles={CRM_GROUP}>
             <CRM />
           </PrivateRoute>
         } />
 
         {/* ── Project Module ── */}
         <Route path="/project-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.PROJECT]}>
+          <PrivateRoute allowedRoles={PROJECT_GROUP}>
             <ProjectDashboard />
           </PrivateRoute>
         } />
         <Route path="/project" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.PROJECT]}>
+          <PrivateRoute allowedRoles={PROJECT_GROUP}>
             <Project />
           </PrivateRoute>
         } />
 
         {/* ── HelpDesk Module ── */}
         <Route path="/helpdesk-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HELPDESK]}>
+          <PrivateRoute allowedRoles={HELPDESK_GROUP}>
             <HelpDeskDashboard />
           </PrivateRoute>
         } />
         <Route path="/helpdesk" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HELPDESK, ROLES.EMPLOYEE]}>
+          <PrivateRoute allowedRoles={HELPDESK_GROUP}>
             <HelpDesk />
           </PrivateRoute>
         } />
 
         {/* ── Asset Module ── */}
         <Route path="/asset-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.ASSET]}>
+          <PrivateRoute allowedRoles={ASSET_GROUP}>
             <AssetDashboard />
           </PrivateRoute>
         } />
         <Route path="/asset" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.ASSET]}>
+          <PrivateRoute allowedRoles={ASSET_GROUP}>
             <Asset />
           </PrivateRoute>
         } />
 
         {/* ── Recruitment Module ── */}
         <Route path="/recruitment-dashboard" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR]}>
+          <PrivateRoute allowedRoles={RECRUIT_GROUP}>
             <RecruitmentDashboard />
           </PrivateRoute>
         } />
         <Route path="/recruitment" element={
-          <PrivateRoute allowedRoles={[ROLES.ADMIN, ROLES.HR]}>
+          <PrivateRoute allowedRoles={RECRUIT_GROUP}>
             <Recruitment />
+          </PrivateRoute>
+        } />
+
+        {/* ── ESS Module ── */}
+        <Route path="/ess-dashboard" element={
+          <PrivateRoute allowedRoles={ESS_GROUP}>
+            <ESSDashboard />
           </PrivateRoute>
         } />
 

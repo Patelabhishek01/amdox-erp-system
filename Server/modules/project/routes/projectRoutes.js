@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   createProject,
   getProjects,
+  getMyProjects,
   getProjectById,
   updateProject,
   deleteProject,
@@ -11,30 +12,35 @@ const {
 
 const {
   createTask,
+  updateTask,
+  updateTaskStatus,
   logHours,
   getTasks,
-  getTasksByEmployee
+  getMyTasks,
+  getTasksByEmployee,
+  deleteTask,
 } = require("../controllers/taskController");
 
-// Task routes
-router.post("/tasks", createTask);
-router.patch("/tasks/:id/log-hours", logHours);
-router.get("/tasks", getTasks);
-router.get("/tasks/employee/:employeeId", getTasksByEmployee);
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
+const protect = authMiddleware;
+const projectRoles = checkRole(["admin", "project", "project manager"]);
 
-// Create Project
-router.post("/", createProject);
+// ─── Task Routes ──────────────────────────────────────────────────────────────
+router.post("/tasks", protect, projectRoles, createTask);
+router.get("/tasks", protect, getTasks);
+router.get("/tasks/me", protect, getMyTasks);
+router.get("/tasks/employee/:employeeId", protect, getTasksByEmployee);
+router.put("/tasks/:id", protect, projectRoles, updateTask);
+router.patch("/tasks/:id/status", protect, updateTaskStatus);
+router.patch("/tasks/:id/log-hours", protect, logHours);
+router.delete("/tasks/:id", protect, projectRoles, deleteTask);
 
-// Get All Projects (with optional ?search=)
-router.get("/", getProjects);
-
-// Get Single Project
-router.get("/:id", getProjectById);
-
-// Update Project
-router.put("/:id", updateProject);
-
-// Delete Project
-router.delete("/:id", deleteProject);
+// ─── Project Routes ───────────────────────────────────────────────────────────
+router.post("/", protect, projectRoles, createProject);
+router.get("/", protect, getProjects);
+router.get("/me", protect, getMyProjects);
+router.get("/:id", protect, getProjectById);
+router.put("/:id", protect, projectRoles, updateProject);
+router.delete("/:id", protect, projectRoles, deleteProject);
 
 module.exports = router;

@@ -12,34 +12,30 @@ const {
 } = require("../controllers/productController");
 
 // Import auth middleware
-const {authMiddleware} = require("../../../middleware/authMiddleware");
+const { authMiddleware, checkRole } = require("../../../middleware/authMiddleware");
 
-// Support both export styles:
-// module.exports = protect
-// OR
-// module.exports = { protect }
-const protect =
-  authMiddleware.protect || authMiddleware;
+const protect = authMiddleware.protect || authMiddleware;
+const inventoryRoles = checkRole(["admin", "inventory"]);
 
 // GET low-stock products
-router.get("/low-stock", protect, getLowStockProducts);
+router.get("/low-stock", protect, inventoryRoles, getLowStockProducts);
 
 // PATCH update-stock
-router.patch("/update-stock", protect, updateStock);
+router.patch("/update-stock", protect, inventoryRoles, updateStock);
 
 // GET all products
-router.get("/", protect, getProducts);
+router.get("/", protect, inventoryRoles, getProducts);
 
 // CREATE product
-router.post("/", protect, createProduct);
+router.post("/", protect, inventoryRoles, createProduct);
 
 // GET single product
-router.get("/:id", protect, getProductById);
+router.get("/:id", protect, inventoryRoles, getProductById);
 
 // UPDATE product
-router.put("/:id", protect, updateProduct);
+router.put("/:id", protect, inventoryRoles, updateProduct);
 
 // DELETE product
-router.delete("/:id", protect, deleteProduct);
+router.delete("/:id", protect, inventoryRoles, deleteProduct);
 
 module.exports = router;
