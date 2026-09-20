@@ -73,9 +73,12 @@ const getEmployeeDocIdForUser = async (reqUser) => {
 
 // Helper: Synchronize assignedTo array for backward compatibility
 const syncAssignedTo = (data) => {
-  const members = Array.isArray(data.teamMembers) ? [...data.teamMembers] : [];
-  if (data.projectManager && !members.some(id => id.toString() === data.projectManager.toString())) {
-    members.push(data.projectManager);
+  const pm = data.projectManager && data.projectManager.toString().trim() !== "" ? data.projectManager : null;
+  const members = Array.isArray(data.teamMembers)
+    ? data.teamMembers.filter(id => id && id.toString().trim() !== "")
+    : [];
+  if (pm && !members.some(id => id.toString() === pm.toString())) {
+    members.push(pm);
   }
   return members;
 };
@@ -124,10 +127,18 @@ exports.createProject = async (req, res) => {
   try {
     const projectData = { ...req.body };
 
+    if (!projectData.projectManager || projectData.projectManager.toString().trim() === "") {
+      projectData.projectManager = null;
+    }
+    if (Array.isArray(projectData.teamMembers)) {
+      projectData.teamMembers = projectData.teamMembers.filter(id => id && id.toString().trim() !== "");
+    }
+
     // Sync legacy assignedTo array with teamMembers/projectManager
     if (projectData.teamMembers || projectData.projectManager) {
       projectData.assignedTo = syncAssignedTo(projectData);
     } else if (projectData.assignedTo) {
+      projectData.assignedTo = projectData.assignedTo.filter(id => id && id.toString().trim() !== "");
       projectData.teamMembers = [...projectData.assignedTo];
     }
 
@@ -289,9 +300,17 @@ exports.updateProject = async (req, res) => {
 
     const projectData = { ...req.body };
 
+    if (!projectData.projectManager || projectData.projectManager.toString().trim() === "") {
+      projectData.projectManager = null;
+    }
+    if (Array.isArray(projectData.teamMembers)) {
+      projectData.teamMembers = projectData.teamMembers.filter(id => id && id.toString().trim() !== "");
+    }
+
     if (projectData.teamMembers || projectData.projectManager) {
       projectData.assignedTo = syncAssignedTo(projectData);
     } else if (projectData.assignedTo) {
+      projectData.assignedTo = projectData.assignedTo.filter(id => id && id.toString().trim() !== "");
       projectData.teamMembers = [...projectData.assignedTo];
     }
 

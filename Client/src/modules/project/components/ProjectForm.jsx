@@ -60,7 +60,11 @@ function ProjectForm({ onSubmit, editingProject, onCancel }) {
     }
   }, [editingProject]);
 
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const handleChange = (e) => {
+    setErrorMsg("");
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -68,6 +72,7 @@ function ProjectForm({ onSubmit, editingProject, onCancel }) {
   };
 
   const handleTeamMembersChange = (e) => {
+    setErrorMsg("");
     const options = e.target.options;
     const values = [];
     for (let i = 0, l = options.length; i < l; i++) {
@@ -81,20 +86,37 @@ function ProjectForm({ onSubmit, editingProject, onCancel }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setLoading(true);
+    setErrorMsg("");
 
-    if (!editingProject) {
-      setFormData({
-        projectName: "",
-        projectManager: "",
-        teamMembers: [],
-        dueDate: "",
-        priority: "Medium",
-        status: "Pending",
-        description: "",
-      });
+    const payload = {
+      ...formData,
+      projectManager: formData.projectManager || null,
+      teamMembers: (formData.teamMembers || []).filter(Boolean),
+    };
+
+    try {
+      await onSubmit(payload);
+
+      if (!editingProject) {
+        setFormData({
+          projectName: "",
+          projectManager: "",
+          teamMembers: [],
+          dueDate: "",
+          priority: "Medium",
+          status: "Pending",
+          description: "",
+        });
+      }
+    } catch (err) {
+      console.error("Error submitting project form:", err);
+      const msg = err?.response?.data?.message || err?.message || "Failed to save project";
+      setErrorMsg(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -247,26 +269,49 @@ function ProjectForm({ onSubmit, editingProject, onCancel }) {
         />
       </div>
 
+      {errorMsg && (
+        <div
+          style={{
+            padding: "10px 14px",
+            marginBottom: "16px",
+            background: "#fef2f2",
+            color: "#dc2626",
+            border: "1px solid #fca5a5",
+            borderRadius: "6px",
+            fontSize: "13px",
+            fontWeight: "500",
+          }}
+        >
+          ⚠️ {errorMsg}
+        </div>
+      )}
+
       <div style={{ marginTop: "8px" }}>
         <button
           type="submit"
+          disabled={loading}
           style={{
             ...buttonStyle,
-            background: "#2563eb",
+            background: loading ? "#93c5fd" : "#2563eb",
             color: "#fff",
+            cursor: loading ? "not-allowed" : "pointer",
           }}
         >
-          {editingProject ? "Update Project" : "Create Project"}
+          {loading
+            ? (editingProject ? "Updating Project..." : "Creating Project...")
+            : (editingProject ? "Update Project" : "Create Project")}
         </button>
 
         {editingProject && (
           <button
             type="button"
+            disabled={loading}
             onClick={onCancel}
             style={{
               ...buttonStyle,
               background: "#6b7280",
               color: "#fff",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
           >
             Cancel

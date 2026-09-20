@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 import ProjectForm from "../components/ProjectForm";
 import ProjectList from "../components/ProjectList";
@@ -42,14 +43,19 @@ function Project() {
     try {
       if (editingProject) {
         await updateProject(editingProject._id, formData);
+        toast.success("Project updated successfully! ✅");
         setEditingProject(null);
       } else {
         await createProject(formData);
+        toast.success("Project created successfully! ✅");
       }
       setShowForm(false);
       fetchProjects();
     } catch (error) {
       console.error("Error saving project:", error);
+      const msg = error?.response?.data?.message || "Failed to save project";
+      toast.error(msg);
+      throw error;
     }
   };
 
@@ -61,9 +67,11 @@ function Project() {
 
     try {
       await deleteProject(id);
+      toast.success("Project deleted successfully");
       fetchProjects();
     } catch (error) {
       console.error("Error deleting project:", error);
+      toast.error(error?.response?.data?.message || "Error deleting project");
     }
   };
 
