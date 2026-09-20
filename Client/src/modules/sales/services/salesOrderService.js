@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/sales/orders";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = `${API_URL}/api/sales/orders`;
 
 // Auth Config
 const getAuthConfig = () => {

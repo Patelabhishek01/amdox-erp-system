@@ -234,9 +234,10 @@ export default function Profile() {
     );
   }
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const completionPercent = calculateCompletion();
   const avatarUrl = user.profilePhoto 
-    ? `http://localhost:5000${user.profilePhoto}` 
+    ? (user.profilePhoto.startsWith("http") ? user.profilePhoto : `${API_URL}${user.profilePhoto}`)
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=2563eb&color=fff`;
 
   return (
@@ -546,7 +547,7 @@ export default function Profile() {
                 <label style={{ fontSize: "13px", fontWeight: "600", display: "block", marginBottom: "6px" }}>Resume / CV Attachment</label>
                 {user.resume ? (
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <a href={`http://localhost:5000${user.resume}`} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: "underline", display: "inline-flex", gap: "6px" }}>
+                    <a href={user.resume.startsWith("http") ? user.resume : `${API_URL}${user.resume}`} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ textDecoration: "underline", display: "inline-flex", gap: "6px" }}>
                       <FileText size={14} />
                       View Uploaded Resume
                     </a>
