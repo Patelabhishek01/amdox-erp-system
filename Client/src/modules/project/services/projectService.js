@@ -44,3 +44,25 @@ export const deleteProject = async (id) => {
   const response = await api.delete(`/projects/${id}`);
   return response.data;
 };
+
+// =========================
+// Task APIs
+// =========================
+
+// Create task
+export const createTask = async (data) => {
+  const response = await api.post("/projects/tasks", data);
+  return response.data;
+};
+
+// Update task
+export const updateTask = async (id, data) => {
+  const response = await api.put(`/projects/tasks/${id}`, data);
+  return response.data;
+};
+
+// Delete task
+export const deleteTask = async (id) => {
+  const response = await api.delete(`/projects/tasks/${id}`);
+  return response.data;
+};

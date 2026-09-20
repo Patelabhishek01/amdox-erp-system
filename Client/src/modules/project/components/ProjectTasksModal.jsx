@@ -107,14 +107,44 @@ function ProjectTasksModal({ project, onClose }) {
     });
   };
 
-  const handleCreateTask = async (e) => {
+  const [editingTaskId, setEditingTaskId] = useState(null);
+
+  const resetForm = () => {
+    setEditingTaskId(null);
+    setFormData({
+      title: "",
+      description: "",
+      assignedEmployeeId: "",
+      dueDate: "",
+      status: "Todo",
+    });
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTaskId(task._id);
+    setFormData({
+      title: task.title || "",
+      description: task.description || "",
+      assignedEmployeeId: task.assignedEmployeeId?._id || task.assignedEmployeeId || "",
+      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().substring(0, 10) : "",
+      status: task.status || "Todo",
+    });
+    setErrorMsg("");
+    setSuccessMsg("");
+  };
+
+  const handleSaveTask = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
+    const isEdit = !!editingTaskId;
+    const url = isEdit ? `/api/projects/tasks/${editingTaskId}` : "/api/projects/tasks";
+    const method = isEdit ? "PUT" : "POST";
+
     try {
-      const res = await apiRequest("/api/projects/tasks", {
-        method: "POST",
+      const res = await apiRequest(url, {
+        method,
         body: JSON.stringify({
           ...formData,
           projectId: project._id,
@@ -124,21 +154,15 @@ function ProjectTasksModal({ project, onClose }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMsg(data.message || "Failed to assign task");
+        setErrorMsg(data.message || (isEdit ? "Failed to update task" : "Failed to assign task"));
         return;
       }
 
-      setSuccessMsg("Task assigned successfully!");
-      setFormData({
-        title: "",
-        description: "",
-        assignedEmployeeId: "",
-        dueDate: "",
-        status: "Todo",
-      });
+      setSuccessMsg(isEdit ? "Task updated successfully!" : "Task assigned successfully!");
+      resetForm();
       fetchTasks();
     } catch (err) {
-      setErrorMsg("Network error assigning task");
+      setErrorMsg("Network error saving task");
     }
   };
 
@@ -265,9 +289,9 @@ function ProjectTasksModal({ project, onClose }) {
             </div>
           )}
 
-          {/* Task Creation Form */}
+          {/* Task Creation / Edit Form */}
           <form
-            onSubmit={handleCreateTask}
+            onSubmit={handleSaveTask}
             style={{
               background: "#f8fafc",
               padding: "18px",
@@ -276,7 +300,9 @@ function ProjectTasksModal({ project, onClose }) {
               border: "1px solid #e2e8f0",
             }}
           >
-            <h4 style={{ margin: "0 0 14px", fontSize: "15px", color: "#0f172a", fontWeight: "600" }}>Assign New Task</h4>
+            <h4 style={{ margin: "0 0 14px", fontSize: "15px", color: "#0f172a", fontWeight: "600" }}>
+              {editingTaskId ? "Edit Task Details" : "Assign New Task"}
+            </h4>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
               <div>
@@ -324,7 +350,7 @@ function ProjectTasksModal({ project, onClose }) {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: "600", marginBottom: "6px", color: "#334155" }}>Initial Status</label>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: "600", marginBottom: "6px", color: "#334155" }}>Status</label>
                 <select
                   name="status"
                   value={formData.status}
@@ -350,22 +376,43 @@ function ProjectTasksModal({ project, onClose }) {
               />
             </div>
 
-            <button
-              type="submit"
-              style={{
-                padding: "9px 18px",
-                background: "#2563eb",
-                color: "#ffffff",
-                border: "none",
-                borderRadius: "8px",
-                fontWeight: "600",
-                cursor: "pointer",
-                fontSize: "13.5px",
-                transition: "background 0.15s ease",
-              }}
-            >
-              Assign Task
-            </button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button
+                type="submit"
+                style={{
+                  padding: "9px 18px",
+                  background: "#2563eb",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "13.5px",
+                  transition: "background 0.15s ease",
+                }}
+              >
+                {editingTaskId ? "Update Task" : "Assign Task"}
+              </button>
+
+              {editingTaskId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  style={{
+                    padding: "9px 16px",
+                    background: "#e2e8f0",
+                    color: "#334155",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    fontSize: "13.5px",
+                  }}
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
           </form>
 
           {/* Existing Tasks List */}
@@ -385,6 +432,7 @@ function ProjectTasksModal({ project, onClose }) {
                     <th style={{ padding: "10px 12px", border: "1px solid #e2e8f0", color: "#334155" }}>Due Date</th>
                     <th style={{ padding: "10px 12px", border: "1px solid #e2e8f0", color: "#334155" }}>Hours</th>
                     <th style={{ padding: "10px 12px", border: "1px solid #e2e8f0", color: "#334155" }}>Status</th>
+                    <th style={{ padding: "10px 12px", border: "1px solid #e2e8f0", color: "#334155" }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -412,6 +460,24 @@ function ProjectTasksModal({ project, onClose }) {
                           <option value="In Progress">In Progress</option>
                           <option value="Done">Done</option>
                         </select>
+                      </td>
+                      <td style={{ padding: "10px 12px", border: "1px solid #e2e8f0" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleEditTask(t)}
+                          style={{
+                            padding: "4px 10px",
+                            background: "#2563eb",
+                            color: "#ffffff",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontSize: "12px",
+                            cursor: "pointer",
+                            fontWeight: "500",
+                          }}
+                        >
+                          Edit
+                        </button>
                       </td>
                     </tr>
                   ))}
